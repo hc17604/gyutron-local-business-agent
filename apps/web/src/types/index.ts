@@ -6,6 +6,7 @@ export type PageKey =
   | "ecommerce"
   | "sources"
   | "reports"
+  | "automations"
   | "tasks"
   | "memory"
   | "rules"

@@ -8,6 +8,7 @@ class Settings:
     data_dir = Path(os.environ.get("GYUTRON_DATA_DIR", repo_root / "data"))
     workspace_root = Path(os.environ.get("GYUTRON_WORKSPACE_ROOT", repo_root)).resolve()
     uploads_dir = data_dir / "uploads"
+    imports_dir = data_dir / "imports"
     reports_dir = data_dir / "reports"
     db_dir = data_dir / "db"
     database_path = db_dir / "gyutron.sqlite3"

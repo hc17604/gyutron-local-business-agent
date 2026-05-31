@@ -61,3 +61,91 @@ export interface PatchProposalResponse {
     explanation: string;
   }>;
 }
+
+export interface ConnectorCatalogItem {
+  connector_id: string;
+  name: string;
+  type: string;
+  description: string;
+  status: string;
+  auth_type: string;
+  supported_data_types: string[];
+}
+
+export interface DataConnector {
+  id: number;
+  connector_type: string;
+  name: string;
+  description?: string;
+  status: string;
+  config_json: Record<string, unknown>;
+  last_sync_at?: string;
+  last_sync_status?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SyncJob {
+  id: number;
+  connector_id: number;
+  status: string;
+  sync_type: string;
+  records_found: number;
+  records_imported: number;
+  error_message?: string;
+  created_at: string;
+  completed_at?: string;
+}
+
+export interface AutomationRule {
+  id: number;
+  name: string;
+  description?: string;
+  trigger_type: string;
+  schedule_cron?: string;
+  action_type: string;
+  action_config_json: Record<string, unknown>;
+  status: "active" | "paused";
+  last_run_at?: string;
+  next_run_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AutomationRun {
+  id: number;
+  automation_rule_id: number;
+  status: string;
+  trigger_source: string;
+  result_summary?: string;
+  error_message?: string;
+  created_at: string;
+  completed_at?: string;
+}
+
+export interface LocalAlert {
+  id: number;
+  title: string;
+  description: string;
+  severity: "low" | "medium" | "high";
+  status: "open" | "acknowledged" | "resolved";
+  source_type?: string;
+  source_id?: string;
+  created_at: string;
+}
+
+export interface LocalReport {
+  id: number;
+  title: string;
+  status: string;
+  content_markdown?: string;
+  summary_json?: string;
+  created_at: string;
+}
+
+export interface OverviewResponse {
+  latest_report: (LocalReport & { summary?: Record<string, unknown> }) | null;
+  active_automations: AutomationRule[];
+  recent_sync_jobs: SyncJob[];
+  open_alerts: LocalAlert[];
+}

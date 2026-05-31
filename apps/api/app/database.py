@@ -123,11 +123,83 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   output_summary TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS data_connectors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  connector_type TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  config_json TEXT NOT NULL DEFAULT '{}',
+  auth_json TEXT NOT NULL DEFAULT '{}',
+  last_sync_at TEXT,
+  last_sync_status TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sync_jobs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  connector_id INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  sync_type TEXT NOT NULL DEFAULT 'manual',
+  records_found INTEGER NOT NULL DEFAULT 0,
+  records_imported INTEGER NOT NULL DEFAULT 0,
+  error_message TEXT,
+  started_at TEXT,
+  completed_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(connector_id) REFERENCES data_connectors(id)
+);
+
+CREATE TABLE IF NOT EXISTS automation_rules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  description TEXT,
+  trigger_type TEXT NOT NULL DEFAULT 'manual',
+  schedule_cron TEXT,
+  action_type TEXT NOT NULL,
+  action_config_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'active',
+  last_run_at TEXT,
+  next_run_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS automation_runs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  automation_rule_id INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  trigger_source TEXT NOT NULL DEFAULT 'manual',
+  result_summary TEXT,
+  result_json TEXT NOT NULL DEFAULT '{}',
+  error_message TEXT,
+  started_at TEXT,
+  completed_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(automation_rule_id) REFERENCES automation_rules(id)
+);
+
+CREATE TABLE IF NOT EXISTS alerts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  severity TEXT NOT NULL DEFAULT 'medium',
+  status TEXT NOT NULL DEFAULT 'open',
+  source_type TEXT,
+  source_id TEXT,
+  related_report_id INTEGER,
+  related_task_id INTEGER,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 
 def ensure_local_storage() -> None:
     settings.uploads_dir.mkdir(parents=True, exist_ok=True)
+    settings.imports_dir.mkdir(parents=True, exist_ok=True)
     settings.reports_dir.mkdir(parents=True, exist_ok=True)
     settings.db_dir.mkdir(parents=True, exist_ok=True)
 

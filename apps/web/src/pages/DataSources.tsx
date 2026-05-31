@@ -1,68 +1,125 @@
-import { Upload } from "lucide-react";
+import { FolderPlus, PlugZap, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import { createConnector, getConnectors, syncConnector, testConnector } from "../api/client";
 import { PageHeader } from "../components/common/PageHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
-import { dataSources } from "../data/mockDashboard";
+import type { ConnectorCatalogItem, DataConnector } from "../types/api";
 
-const sourceTypes = ["Excel / CSV", "Alibaba.com", "Shopee", "Amazon", "TikTok Shop", "Shopify", "ERP", "Email", "CRM"];
+const defaultFolder = "D:\\Codex\\gyutron-local-business-agent\\data\\imports";
 
 export function DataSources() {
+  const [catalog, setCatalog] = useState<ConnectorCatalogItem[]>([]);
+  const [connectors, setConnectors] = useState<DataConnector[]>([]);
+  const [folderPath, setFolderPath] = useState(defaultFolder);
+  const [message, setMessage] = useState<string>();
+
+  async function refresh() {
+    const response = await getConnectors();
+    setCatalog(response.catalog);
+    setConnectors(response.connectors);
+  }
+
+  useEffect(() => {
+    refresh().catch((error: Error) => setMessage(error.message));
+  }, []);
+
+  async function handleAddLocalFolder() {
+    const connector = await createConnector({
+      connector_type: "local_folder",
+      name: "Local imports",
+      description: "Scans local Excel and CSV exports.",
+      config_json: { folder_path: folderPath, data_type: "order", platform_label: "Local folder", scan_interval: "manual" },
+    });
+    setConnectors((current) => [connector, ...current]);
+    setMessage("Local Folder connector created.");
+  }
+
+  async function handleTest(id: number) {
+    const result = await testConnector(id);
+    setMessage(result.message);
+  }
+
+  async function handleSync(id: number) {
+    const result = await syncConnector(id);
+    setMessage(result.summary);
+    await refresh();
+  }
+
   return (
     <div className="page-stack">
       <PageHeader
         actions={
-          <button className="button primary" type="button">
-            <Upload size={16} />
-            Upload Data
+          <button className="button primary" onClick={handleAddLocalFolder} type="button">
+            <FolderPlus size={16} />
+            Add Local Folder
           </button>
         }
-        description="Manage local uploaded files now and reserve entries for future platform connectors."
-        eyebrow="Local files and connectors"
+        description="Manage local-first data connectors. Platform connectors are placeholders until real API integrations are intentionally added."
+        eyebrow="Connector center"
         title="Data sources"
       />
 
+      <section className="panel">
+        <div className="panel-heading">
+          <h2>Create local folder connector</h2>
+          <span>Allowed under workspace or data directory</span>
+        </div>
+        <label>
+          Folder path
+          <input onChange={(event) => setFolderPath(event.target.value)} value={folderPath} />
+        </label>
+        {message ? <div className="inline-info">{message}</div> : null}
+      </section>
+
       <section className="source-grid">
-        {sourceTypes.map((source, index) => (
-          <article className="source-card" key={source}>
-            <strong>{source}</strong>
-            <StatusBadge label={index === 0 || source === "ERP" ? "Available" : "Coming soon"} tone={index === 0 || source === "ERP" ? "success" : "neutral"} />
+        {catalog.map((source) => (
+          <article className="source-card" key={source.connector_id}>
+            <strong>{source.name}</strong>
+            <p className="muted">{source.description}</p>
+            <StatusBadge label={source.status === "available" ? "Available" : "Mock / Coming soon"} tone={source.status === "available" ? "success" : "neutral"} />
           </article>
         ))}
       </section>
 
       <section className="panel">
         <div className="panel-heading">
-          <h2>Uploaded files</h2>
-          <span>Connected to local storage roadmap</span>
+          <h2>Configured connectors</h2>
+          <span>Sync jobs are stored locally</span>
         </div>
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>File name</th>
-                <th>Data type</th>
-                <th>Platform</th>
-                <th>Rows</th>
-                <th>Uploaded time</th>
-                <th>Mapping status</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Last sync</th>
+                <th>Last result</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {dataSources.map((source) => (
-                <tr key={source.fileName}>
-                  <td>{source.fileName}</td>
-                  <td>{source.dataType}</td>
-                  <td>{source.platform}</td>
-                  <td>{source.rows.toLocaleString()}</td>
-                  <td>{source.uploadedAt}</td>
+              {connectors.map((connector) => (
+                <tr key={connector.id}>
+                  <td>{connector.name}</td>
+                  <td>{connector.connector_type}</td>
                   <td>
-                    <StatusBadge label={source.mappingStatus} tone={source.mappingStatus === "Mapped" ? "success" : "warning"} />
+                    <StatusBadge label={connector.status} tone={connector.status === "active" ? "success" : "warning"} />
                   </td>
+                  <td>{connector.last_sync_at ?? "-"}</td>
+                  <td>{connector.last_sync_status ?? "-"}</td>
                   <td>
-                    <button className="table-action" type="button">
-                      Review
-                    </button>
+                    <div className="table-actions">
+                      <button className="table-action" onClick={() => void handleTest(connector.id)} type="button">
+                        <PlugZap size={14} />
+                        Test
+                      </button>
+                      <button className="table-action" onClick={() => void handleSync(connector.id)} type="button">
+                        <RefreshCw size={14} />
+                        Sync
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

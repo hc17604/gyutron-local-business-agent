@@ -123,3 +123,130 @@ The backend writes audit logs for:
 - patch proposals
 - patch application
 - rollback
+- connector create/test/sync
+- automation create/update/run/pause/resume/delete
+- alert create/update/acknowledge/resolve
+
+## Connectors
+
+### `GET /connectors/catalog`
+
+Returns available connector plugins. Real MVP connectors:
+- `excel_csv`
+- `local_folder`
+
+Mock placeholders:
+- `alibaba`
+- `shopee`
+- `amazon`
+- `shopify`
+
+### `GET /connectors`
+
+Lists configured local data connectors and connector catalog metadata.
+
+### `POST /connectors`
+
+Creates a connector record.
+
+Example local folder config:
+
+```json
+{
+  "connector_type": "local_folder",
+  "name": "Local imports",
+  "config_json": {
+    "folder_path": "D:\\Codex\\gyutron-local-business-agent\\data\\imports",
+    "data_type": "order"
+  }
+}
+```
+
+### `POST /connectors/{connector_id}/test`
+
+Tests connector configuration without external side effects.
+
+### `POST /connectors/{connector_id}/sync`
+
+Runs a manual sync. Local Folder sync scans `.csv`, `.xlsx`, and `.xls` files, imports new files into local upload records, and creates a `SyncJob`.
+
+### `GET /connectors/{connector_id}/sync-jobs`
+
+Lists sync history.
+
+### `POST /connectors/local-folder/scan`
+
+Convenience endpoint for scanning the latest configured local folder connector.
+
+## Automations
+
+### `GET /automations`
+
+Lists local automation rules.
+
+### `POST /automations`
+
+Creates an automation rule. Supported triggers:
+- `manual`
+- `schedule`
+- `data_updated`
+
+Supported MVP actions:
+- `generate_report`
+- `scan_connector`
+- `create_alert`
+- `run_agent_analysis` placeholder
+
+Schedule format for MVP:
+- `daily:09:00`
+- `weekly:mon:09:00`
+
+### `POST /automations/{id}/run`
+
+Runs an automation manually and creates an `AutomationRun`.
+
+### `POST /automations/{id}/pause`
+
+Pauses an active automation.
+
+### `POST /automations/{id}/resume`
+
+Resumes a paused automation and recalculates `next_run_at`.
+
+### `GET /automations/{id}/runs`
+
+Lists automation run history.
+
+## Reports
+
+### `GET /reports`
+
+Lists local reports.
+
+### `POST /reports/generate-owner-report`
+
+Generates a deterministic local owner report from recent uploads, active business rules, and open alerts. This first version does not send email or push to external systems.
+
+## Alerts
+
+### `GET /alerts`
+
+Lists local alerts.
+
+### `POST /alerts`
+
+Creates an alert.
+
+### `POST /alerts/{id}/acknowledge`
+
+Marks an alert as acknowledged.
+
+### `POST /alerts/{id}/resolve`
+
+Marks an alert as resolved.
+
+## Overview
+
+### `GET /overview`
+
+Returns the latest report summary, active automations, recent sync jobs, and open alerts for the dashboard.

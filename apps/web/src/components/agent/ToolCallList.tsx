@@ -8,6 +8,13 @@ const defaultTools = [
   "patch_proposal_tool",
   "patch_apply_tool",
   "rollback_tool",
+  "connector_list_tool",
+  "connector_sync_tool",
+  "automation_create_tool",
+  "automation_run_tool",
+  "automation_pause_tool",
+  "alert_list_tool",
+  "report_latest_tool",
 ];
 
 export function ToolCallList({ tools = defaultTools }: { tools?: string[] }) {

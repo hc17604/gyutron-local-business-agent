@@ -7,6 +7,11 @@ import { AgentMessage } from "./AgentMessage";
 
 const businessPrompts = [
   "Generate today's owner report",
+  "Create a daily owner report automation",
+  "Scan local data folder now",
+  "Generate report from latest synced data",
+  "Check open alerts",
+  "Summarize automation runs",
   "Analyze latest Alibaba inquiries",
   "Find overdue follow-ups",
   "Summarize product opportunities",

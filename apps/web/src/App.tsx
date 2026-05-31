@@ -5,6 +5,7 @@ import { Header } from "./components/layout/Header";
 import { Sidebar } from "./components/layout/Sidebar";
 import { AgentChatPage } from "./pages/AgentChatPage";
 import { AuditLogs } from "./pages/AuditLogs";
+import { Automations } from "./pages/Automations";
 import { BusinessRules } from "./pages/BusinessRules";
 import { DataSources } from "./pages/DataSources";
 import { EcommerceDashboard } from "./pages/EcommerceDashboard";
@@ -22,6 +23,7 @@ const pageMap: Record<PageKey, { title: string; component: ReactElement }> = {
   ecommerce: { title: "Ecommerce Dashboard", component: <EcommerceDashboard /> },
   sources: { title: "Data Sources", component: <DataSources /> },
   reports: { title: "Reports", component: <Reports /> },
+  automations: { title: "Automations", component: <Automations /> },
   tasks: { title: "Tasks", component: <Tasks /> },
   memory: { title: "Memory", component: <Memory /> },
   rules: { title: "Business Rules", component: <BusinessRules /> },

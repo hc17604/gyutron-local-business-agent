@@ -9,6 +9,7 @@ import {
   Home,
   KeyRound,
   ListChecks,
+  PlaySquare,
   Settings,
   ShieldCheck,
 } from "lucide-react";
@@ -21,6 +22,7 @@ const navItems: NavigationItem[] = [
   { key: "ecommerce", label: "Ecommerce Dashboard", icon: BarChart3 },
   { key: "sources", label: "Data Sources", icon: Database },
   { key: "reports", label: "Reports", icon: FileText },
+  { key: "automations", label: "Automations", icon: PlaySquare },
   { key: "tasks", label: "Tasks", icon: ClipboardList },
   { key: "memory", label: "Memory", icon: Brain },
   { key: "rules", label: "Business Rules", icon: ListChecks },

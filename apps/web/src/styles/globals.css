@@ -725,6 +725,16 @@ label select {
   font-weight: 700;
 }
 
+.inline-info {
+  padding: 10px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .diff-panel {
   display: grid;
   gap: 14px;
@@ -750,6 +760,19 @@ label select {
   color: #e5e7eb;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.table-actions {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.report-markdown {
+  margin: 14px 0 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  color: #374151;
 }
 
 .context-panel {

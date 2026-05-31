@@ -1,12 +1,18 @@
-import { Database, FileText, ListChecks } from "lucide-react";
+import { Code2, Database, FileText, ListChecks } from "lucide-react";
 
 import { ToolCallList } from "./ToolCallList";
 
-export function ContextPanel() {
+interface ContextPanelProps {
+  workspaceRoot?: string;
+  selectedProjectPaths?: string[];
+  latestTools?: string[];
+}
+
+export function ContextPanel({ workspaceRoot, selectedProjectPaths = [], latestTools }: ContextPanelProps) {
   return (
     <aside className="context-panel">
       <section>
-        <h3>Selected files</h3>
+        <h3>Selected business files</h3>
         <p>
           <FileText size={15} />
           alibaba_inquiries_may.csv
@@ -15,6 +21,20 @@ export function ContextPanel() {
           <FileText size={15} />
           erp_orders_week22.xlsx
         </p>
+      </section>
+      <section>
+        <h3>Selected project files</h3>
+        {selectedProjectPaths.length ? (
+          selectedProjectPaths.map((path) => (
+            <p key={path}>
+              <Code2 size={15} />
+              {path}
+            </p>
+          ))
+        ) : (
+          <p className="muted">No project files selected</p>
+        )}
+        {workspaceRoot ? <p className="muted">Root: {workspaceRoot}</p> : null}
       </section>
       <section>
         <h3>Active business rules</h3>
@@ -36,7 +56,7 @@ export function ContextPanel() {
       </section>
       <section>
         <h3>Tools available</h3>
-        <ToolCallList />
+        <ToolCallList tools={latestTools} />
       </section>
     </aside>
   );

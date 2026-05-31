@@ -1,8 +1,16 @@
 import { Wrench } from "lucide-react";
 
-const tools = ["field_mapping.lookup", "business_rules.scan", "lead_ranker.run", "report_summary.build"];
+const defaultTools = [
+  "llm.chat",
+  "workspace_tree_tool",
+  "file_read_tool",
+  "file_search_tool",
+  "patch_proposal_tool",
+  "patch_apply_tool",
+  "rollback_tool",
+];
 
-export function ToolCallList() {
+export function ToolCallList({ tools = defaultTools }: { tools?: string[] }) {
   return (
     <div className="tool-list">
       {tools.map((tool) => (

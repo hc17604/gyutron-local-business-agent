@@ -43,11 +43,15 @@ CREATE TABLE IF NOT EXISTS business_rules (
 
 CREATE TABLE IF NOT EXISTS llm_configs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  provider_name TEXT NOT NULL DEFAULT 'openai-compatible',
+  provider TEXT NOT NULL DEFAULT 'openai_compatible',
+  provider_name TEXT NOT NULL DEFAULT 'openai_compatible',
+  display_name TEXT NOT NULL DEFAULT 'OpenAI-compatible',
   base_url TEXT NOT NULL,
   api_key TEXT NOT NULL,
   model_name TEXT NOT NULL,
+  is_active INTEGER NOT NULL DEFAULT 0,
   is_default INTEGER NOT NULL DEFAULT 0,
+  supports_streaming INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -64,6 +68,61 @@ CREATE TABLE IF NOT EXISTS reports (
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS conversations (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  mode TEXT NOT NULL DEFAULT 'business',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS agent_messages (
+  id TEXT PRIMARY KEY,
+  conversation_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  content TEXT NOT NULL,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(conversation_id) REFERENCES conversations(id)
+);
+
+CREATE TABLE IF NOT EXISTS patch_proposals (
+  id TEXT PRIMARY KEY,
+  instruction TEXT NOT NULL,
+  summary TEXT NOT NULL,
+  changes_json TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'proposed',
+  risk_level TEXT NOT NULL DEFAULT 'medium',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  applied_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS file_changes (
+  id TEXT PRIMARY KEY,
+  proposal_id TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  change_type TEXT NOT NULL,
+  before_content TEXT NOT NULL,
+  after_content TEXT NOT NULL,
+  diff TEXT NOT NULL,
+  rolled_back INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  rolled_back_at TEXT,
+  FOREIGN KEY(proposal_id) REFERENCES patch_proposals(id)
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  actor TEXT NOT NULL DEFAULT 'local_user',
+  action TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id TEXT,
+  risk_level TEXT NOT NULL DEFAULT 'low',
+  input_summary TEXT,
+  output_summary TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 
@@ -77,6 +136,7 @@ def init_database() -> None:
     ensure_local_storage()
     with sqlite3.connect(settings.database_path) as connection:
         connection.executescript(SCHEMA)
+        _migrate_llm_configs(connection)
         connection.commit()
 
 
@@ -89,3 +149,15 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     finally:
         connection.close()
 
+
+def _migrate_llm_configs(connection: sqlite3.Connection) -> None:
+    existing = {row[1] for row in connection.execute("PRAGMA table_info(llm_configs)").fetchall()}
+    columns = {
+        "provider": "TEXT NOT NULL DEFAULT 'openai_compatible'",
+        "display_name": "TEXT NOT NULL DEFAULT 'OpenAI-compatible'",
+        "is_active": "INTEGER NOT NULL DEFAULT 0",
+        "supports_streaming": "INTEGER NOT NULL DEFAULT 0",
+    }
+    for column, definition in columns.items():
+        if column not in existing:
+            connection.execute(f"ALTER TABLE llm_configs ADD COLUMN {column} {definition}")

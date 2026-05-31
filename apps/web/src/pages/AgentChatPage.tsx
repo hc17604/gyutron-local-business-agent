@@ -1,8 +1,14 @@
+import { useState } from "react";
+
 import { AgentChat } from "../components/agent/AgentChat";
 import { ContextPanel } from "../components/agent/ContextPanel";
 import { PageHeader } from "../components/common/PageHeader";
 
 export function AgentChatPage() {
+  const [selectedProjectPaths, setSelectedProjectPaths] = useState<string[]>([]);
+  const [workspaceRoot, setWorkspaceRoot] = useState<string>();
+  const [latestTools, setLatestTools] = useState<string[]>([]);
+
   return (
     <div className="page-stack">
       <PageHeader
@@ -11,8 +17,13 @@ export function AgentChatPage() {
         title="Local business agent"
       />
       <div className="agent-layout">
-        <AgentChat />
-        <ContextPanel />
+        <AgentChat
+          onSelectedProjectPathsChange={setSelectedProjectPaths}
+          onToolsChange={setLatestTools}
+          onWorkspaceRootChange={setWorkspaceRoot}
+          selectedProjectPaths={selectedProjectPaths}
+        />
+        <ContextPanel latestTools={latestTools} selectedProjectPaths={selectedProjectPaths} workspaceRoot={workspaceRoot} />
       </div>
     </div>
   );

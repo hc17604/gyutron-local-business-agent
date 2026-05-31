@@ -250,3 +250,117 @@ Marks an alert as resolved.
 ### `GET /overview`
 
 Returns the latest report summary, active automations, recent sync jobs, and open alerts for the dashboard.
+
+## Setup And Auth
+
+### `GET /setup/status`
+
+Returns whether the local system has completed first-run setup.
+
+### `POST /setup/finish`
+
+Creates the first local owner account, stores company setup metadata, optionally saves model settings, and optionally creates the first Daily Owner Report automation.
+
+### `POST /auth/login`
+
+Creates a local session token.
+
+### `POST /auth/logout`
+
+Deletes the current local session token.
+
+### `GET /auth/me`
+
+Returns the current local user.
+
+## Users And Roles
+
+### `GET /users`
+
+Owner/admin only. Lists local users.
+
+### `POST /users`
+
+Owner only. Creates a local user.
+
+Roles:
+- `owner`: full local control, including restore, users, patch apply, backups.
+- `admin`: model settings, connectors, automations, audit logs.
+- `operator`: data import, reports, dashboard operations.
+- `viewer`: read-only business views.
+
+## Security Center
+
+### `GET /security/policies`
+
+Returns local mode paths and system policy settings.
+
+### `PUT /security/policies/{key}`
+
+Updates one system policy.
+
+### `POST /security/redaction/preview`
+
+Returns redacted text for emails, phone numbers, and optional amount/name/address masks.
+
+## Backup And Restore
+
+### `GET /backups`
+
+Owner only. Lists local backup records.
+
+### `POST /backups/create`
+
+Owner only. Creates a ZIP backup of SQLite, reports, and config. Uploads are excluded by default.
+
+### `POST /backups/restore`
+
+Owner only. Requires `confirmed=true`. Creates a pre-restore snapshot and restores selected backup contents.
+
+### `DELETE /backups/{id}`
+
+Owner only. Deletes a backup record.
+
+## License
+
+### `GET /license`
+
+Returns local license or trial state.
+
+### `POST /license/activate`
+
+Activates a local license record. This MVP does not call a remote license server.
+
+### `POST /license/deactivate`
+
+Deactivates local license state.
+
+## Demo Data
+
+### `GET /demo/status`
+
+Returns whether demo data is loaded.
+
+### `POST /demo/load`
+
+Loads cross-border manufacturing demo data, rules, alerts, and a generated report.
+
+### `POST /demo/reset`
+
+Removes demo uploads and demo alerts.
+
+## System Operations
+
+### `GET /system/health`
+
+Returns backend, database, scheduler, disk, backup, sync, automation, and recent error status.
+
+### `GET /system/info`
+
+Returns local deployment paths and configured ports.
+
+## Audit Logs
+
+### `GET /audit-logs`
+
+Owner/admin only. Lists local audit logs.

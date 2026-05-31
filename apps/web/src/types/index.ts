@@ -11,6 +11,11 @@ export type PageKey =
   | "memory"
   | "rules"
   | "audit"
+  | "security"
+  | "backups"
+  | "license"
+  | "health"
+  | "users"
   | "models"
   | "system";
 

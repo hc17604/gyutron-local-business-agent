@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.database import get_connection
+from app.services.auth import require_min_role
 from app.services.reports import generate_owner_report
 
 
@@ -15,5 +16,5 @@ def list_reports():
 
 
 @router.post("/generate-owner-report")
-def generate_owner_report_endpoint():
+def generate_owner_report_endpoint(_: dict = Depends(require_min_role("operator"))):
     return generate_owner_report(source="manual")

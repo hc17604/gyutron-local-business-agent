@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.llm.adapter import LLMAdapter, PROVIDERS
 from app.services.audit import write_audit_log
+from app.services.auth import require_min_role
 from app.services.model_settings import get_active_llm_config, get_active_model_config, save_model_config
 
 
@@ -34,7 +35,7 @@ def get_model_settings():
 
 
 @router.post("")
-def update_model_settings(payload: ModelSettingsPayload):
+def update_model_settings(payload: ModelSettingsPayload, _: dict = Depends(require_min_role("admin"))):
     saved = save_model_config(payload.dict())
     write_audit_log(
         "model_settings_saved",
@@ -48,7 +49,7 @@ def update_model_settings(payload: ModelSettingsPayload):
 
 
 @router.post("/test")
-async def test_model_settings(payload: ModelSettingsPayload | None = None):
+async def test_model_settings(payload: ModelSettingsPayload | None = None, _: dict = Depends(require_min_role("admin"))):
     if payload is not None:
         config_data = save_model_config(payload.dict())
         config = get_active_llm_config()

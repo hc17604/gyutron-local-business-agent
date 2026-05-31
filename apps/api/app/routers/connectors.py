@@ -1,11 +1,12 @@
 import json
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.connectors.registry import get_connector, list_manifests
 from app.database import get_connection
 from app.services.audit import write_audit_log
+from app.services.auth import require_min_role
 
 
 router = APIRouter(prefix="/connectors", tags=["connectors"])
@@ -40,7 +41,7 @@ def list_connectors():
 
 
 @router.post("")
-def create_connector(payload: ConnectorPayload):
+def create_connector(payload: ConnectorPayload, _: dict = Depends(require_min_role("admin"))):
     try:
         get_connector(payload.connector_type)
     except KeyError as exc:
@@ -67,12 +68,12 @@ def create_connector(payload: ConnectorPayload):
 
 
 @router.post("/local-folder/scan")
-def scan_first_local_folder():
+def scan_first_local_folder(user: dict = Depends(require_min_role("admin"))):
     with get_connection() as connection:
         row = connection.execute("SELECT id FROM data_connectors WHERE connector_type = 'local_folder' ORDER BY id DESC LIMIT 1").fetchone()
     if row is None:
         raise HTTPException(status_code=404, detail="No local folder connector configured.")
-    return sync_connector(row["id"])
+    return sync_connector(row["id"], "manual", user)
 
 
 @router.get("/{connector_id}")
@@ -85,7 +86,7 @@ def get_data_connector(connector_id: int):
 
 
 @router.put("/{connector_id}")
-def update_connector(connector_id: int, payload: ConnectorPayload):
+def update_connector(connector_id: int, payload: ConnectorPayload, _: dict = Depends(require_min_role("admin"))):
     with get_connection() as connection:
         connection.execute(
             """
@@ -113,7 +114,7 @@ def update_connector(connector_id: int, payload: ConnectorPayload):
 
 
 @router.delete("/{connector_id}")
-def delete_connector(connector_id: int):
+def delete_connector(connector_id: int, _: dict = Depends(require_min_role("admin"))):
     with get_connection() as connection:
         connection.execute("DELETE FROM data_connectors WHERE id = ?", (connector_id,))
         connection.commit()
@@ -122,7 +123,7 @@ def delete_connector(connector_id: int):
 
 
 @router.post("/{connector_id}/test")
-def test_connector(connector_id: int):
+def test_connector(connector_id: int, _: dict = Depends(require_min_role("admin"))):
     connector_row = _connector_row(connector_id)
     connector = get_connector(connector_row["connector_type"])
     result = connector.test_connection(json.loads(connector_row["config_json"] or "{}"), {})
@@ -131,7 +132,7 @@ def test_connector(connector_id: int):
 
 
 @router.post("/{connector_id}/sync")
-def sync_connector(connector_id: int, sync_type: str = "manual"):
+def sync_connector(connector_id: int, sync_type: str = "manual", _: dict = Depends(require_min_role("admin"))):
     connector_row = _connector_row(connector_id)
     connector = get_connector(connector_row["connector_type"])
     with get_connection() as connection:

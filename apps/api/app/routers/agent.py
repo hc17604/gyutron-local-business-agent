@@ -5,12 +5,13 @@ import json
 from datetime import datetime
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.database import get_connection
 from app.llm.adapter import LLMAdapter
 from app.services.audit import write_audit_log
+from app.services.auth import require_role
 from app.services.model_settings import get_active_llm_config
 from app.workspace.workspace import read_workspace_file, resolve_workspace_path
 
@@ -341,7 +342,7 @@ Selected files:
 
 
 @router.post("/engineering/apply-patch")
-def apply_patch(payload: ApplyPatchPayload):
+def apply_patch(payload: ApplyPatchPayload, _: dict = Depends(require_role("owner"))):
     if not payload.confirmed:
         raise HTTPException(status_code=400, detail="Patch application requires confirmation.")
     with get_connection() as connection:

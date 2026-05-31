@@ -1,12 +1,13 @@
 import json
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.database import get_connection
 from app.scheduler.cron import next_run_at
 from app.scheduler.runner import run_automation
 from app.services.audit import write_audit_log
+from app.services.auth import require_min_role
 
 
 router = APIRouter(prefix="/automations", tags=["automations"])
@@ -36,7 +37,7 @@ def list_automations():
 
 
 @router.post("")
-def create_automation(payload: AutomationPayload):
+def create_automation(payload: AutomationPayload, _: dict = Depends(require_min_role("admin"))):
     with get_connection() as connection:
         cursor = connection.execute(
             """
@@ -68,7 +69,7 @@ def get_automation(automation_id: int):
 
 
 @router.put("/{automation_id}")
-def update_automation(automation_id: int, payload: AutomationPayload):
+def update_automation(automation_id: int, payload: AutomationPayload, _: dict = Depends(require_min_role("admin"))):
     with get_connection() as connection:
         connection.execute(
             """
@@ -98,7 +99,7 @@ def update_automation(automation_id: int, payload: AutomationPayload):
 
 
 @router.delete("/{automation_id}")
-def delete_automation(automation_id: int):
+def delete_automation(automation_id: int, _: dict = Depends(require_min_role("admin"))):
     with get_connection() as connection:
         connection.execute("DELETE FROM automation_rules WHERE id = ?", (automation_id,))
         connection.commit()
@@ -107,18 +108,18 @@ def delete_automation(automation_id: int):
 
 
 @router.post("/{automation_id}/run")
-def run_automation_endpoint(automation_id: int):
+def run_automation_endpoint(automation_id: int, _: dict = Depends(require_min_role("admin"))):
     _automation_row(automation_id)
     return run_automation(automation_id, trigger_source="manual")
 
 
 @router.post("/{automation_id}/pause")
-def pause_automation(automation_id: int):
+def pause_automation(automation_id: int, _: dict = Depends(require_min_role("admin"))):
     return _set_status(automation_id, "paused", "automation_paused")
 
 
 @router.post("/{automation_id}/resume")
-def resume_automation(automation_id: int):
+def resume_automation(automation_id: int, _: dict = Depends(require_min_role("admin"))):
     row = _automation_row(automation_id)
     with get_connection() as connection:
         connection.execute(

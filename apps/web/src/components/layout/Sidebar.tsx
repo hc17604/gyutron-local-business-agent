@@ -10,8 +10,13 @@ import {
   KeyRound,
   ListChecks,
   PlaySquare,
+  Shield,
   Settings,
   ShieldCheck,
+  UserRound,
+  ArchiveRestore,
+  BadgeCheck,
+  HeartPulse,
 } from "lucide-react";
 
 import type { NavigationItem, PageKey } from "../../types";
@@ -27,6 +32,11 @@ const navItems: NavigationItem[] = [
   { key: "memory", label: "Memory", icon: Brain },
   { key: "rules", label: "Business Rules", icon: ListChecks },
   { key: "audit", label: "Audit Logs", icon: History },
+  { key: "security", label: "Security Center", icon: Shield },
+  { key: "backups", label: "Backup & Restore", icon: ArchiveRestore },
+  { key: "license", label: "License", icon: BadgeCheck },
+  { key: "health", label: "System Health", icon: HeartPulse },
+  { key: "users", label: "Users", icon: UserRound },
   { key: "models", label: "Model Settings", icon: KeyRound },
   { key: "system", label: "System Settings", icon: Settings },
 ];

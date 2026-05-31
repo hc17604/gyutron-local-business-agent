@@ -7,12 +7,21 @@ from app.config import settings
 from app.database import init_database
 from app.routers.agent import router as agent_router
 from app.routers.alerts import router as alerts_router
+from app.routers.audit import router as audit_router
+from app.routers.auth import router as auth_router
 from app.routers.automations import router as automations_router
+from app.routers.backups import router as backups_router
 from app.routers.connectors import router as connectors_router
+from app.routers.demo import router as demo_router
 from app.routers.health import router as health_router
+from app.routers.license import router as license_router
 from app.routers.overview import router as overview_router
 from app.routers.reports import router as reports_router
+from app.routers.security import router as security_router
 from app.routers.settings import router as settings_router
+from app.routers.setup import router as setup_router
+from app.routers.system import router as system_router
+from app.routers.users import router as users_router
 from app.routers.workspace import router as workspace_router
 from app.scheduler.scheduler import local_scheduler
 
@@ -40,6 +49,9 @@ app.add_middleware(
 )
 
 app.include_router(health_router)
+app.include_router(setup_router)
+app.include_router(auth_router)
+app.include_router(users_router)
 app.include_router(settings_router)
 app.include_router(agent_router)
 app.include_router(workspace_router)
@@ -48,3 +60,9 @@ app.include_router(automations_router)
 app.include_router(alerts_router)
 app.include_router(reports_router)
 app.include_router(overview_router)
+app.include_router(security_router)
+app.include_router(backups_router)
+app.include_router(license_router)
+app.include_router(demo_router)
+app.include_router(system_router)
+app.include_router(audit_router)

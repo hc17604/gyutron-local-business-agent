@@ -149,3 +149,66 @@ export interface OverviewResponse {
   recent_sync_jobs: SyncJob[];
   open_alerts: LocalAlert[];
 }
+
+export interface SetupStatus {
+  is_initialized: boolean;
+  company_name?: string;
+  user_count: number;
+}
+
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: "owner" | "admin" | "operator" | "viewer";
+  is_active: number | boolean;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: AuthUser;
+}
+
+export interface AuditLog {
+  id: number;
+  actor: string;
+  action: string;
+  target_type: string;
+  target_id?: string;
+  risk_level: string;
+  input_summary?: string;
+  output_summary?: string;
+  created_at: string;
+}
+
+export interface BackupRecord {
+  id: number;
+  filename: string;
+  size: number;
+  include_uploads: number;
+  created_by?: string;
+  created_at: string;
+  status: string;
+}
+
+export interface LicenseInfo {
+  license_key?: string;
+  customer_name?: string;
+  plan: string;
+  expires_at?: string;
+  max_users: number;
+  enabled_features: unknown;
+  status: string;
+}
+
+export interface SystemHealth {
+  backend: string;
+  frontend: string;
+  database: string;
+  scheduler: string;
+  last_backup?: BackupRecord | null;
+  last_sync?: SyncJob | null;
+  disk_usage: { total: number; used: number; free: number };
+  active_automations: number;
+  recent_errors: AuditLog[];
+}

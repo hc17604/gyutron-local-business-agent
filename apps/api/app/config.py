@@ -11,7 +11,11 @@ class Settings:
     imports_dir = data_dir / "imports"
     reports_dir = data_dir / "reports"
     db_dir = data_dir / "db"
+    backups_dir = data_dir / "backups"
+    config_dir = data_dir / "config"
     database_path = db_dir / "gyutron.sqlite3"
+    api_port = int(os.environ.get("GYUTRON_API_PORT", "8000"))
+    web_port = int(os.environ.get("GYUTRON_WEB_PORT", "3000"))
     workspace_file_size_limit = 200 * 1024
     workspace_context_file_limit = 20
     llm_timeout_seconds = 45

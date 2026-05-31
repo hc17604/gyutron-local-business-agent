@@ -775,6 +775,46 @@ label select {
   color: #374151;
 }
 
+.onboarding-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 32px;
+  background: #f8fafc;
+}
+
+.onboarding-card {
+  display: grid;
+  gap: 22px;
+  width: min(760px, 100%);
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.compact-card {
+  width: min(480px, 100%);
+}
+
+.wizard-step {
+  display: grid;
+  gap: 14px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.checkbox-row input {
+  width: auto;
+  min-height: auto;
+}
+
 .context-panel {
   display: grid;
   align-content: start;

@@ -1,17 +1,24 @@
 import type {
   AgentChatResponse,
   AgentMode,
+  AuditLog,
+  AuthResponse,
+  AuthUser,
   AutomationRule,
+  BackupRecord,
   ConnectorCatalogItem,
   DataConnector,
   HealthResponse,
   LocalAlert,
   LocalReport,
+  LicenseInfo,
   ModelProvider,
   ModelSettingsResponse,
   OverviewResponse,
   PatchProposalResponse,
   SyncJob,
+  SetupStatus,
+  SystemHealth,
   WorkspaceTreeResponse,
 } from "../types/api";
 
@@ -28,8 +35,9 @@ export async function getHealth(): Promise<HealthResponse> {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = window.localStorage.getItem("gyutron_session_token");
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...(options?.headers ?? {}) },
+    headers: { "Content-Type": "application/json", ...(token ? { "X-Session-Token": token } : {}), ...(options?.headers ?? {}) },
     ...options,
   });
 
@@ -45,6 +53,22 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   return response.json();
+}
+
+export function getSetupStatus(): Promise<SetupStatus> {
+  return request<SetupStatus>("/setup/status");
+}
+
+export function finishSetup(payload: Record<string, unknown>): Promise<AuthResponse> {
+  return request<AuthResponse>("/setup/finish", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function login(payload: { email: string; password: string }): Promise<AuthResponse> {
+  return request<AuthResponse>("/auth/login", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function getMe(): Promise<{ user: AuthUser }> {
+  return request<{ user: AuthUser }>("/auth/me");
 }
 
 export function getModelSettings(): Promise<ModelSettingsResponse> {
@@ -186,4 +210,52 @@ export function resolveAlert(id: number): Promise<LocalAlert> {
 
 export function getOverview(): Promise<OverviewResponse> {
   return request<OverviewResponse>("/overview");
+}
+
+export function getUsers(): Promise<{ users: AuthUser[] }> {
+  return request<{ users: AuthUser[] }>("/users");
+}
+
+export function createUser(payload: Record<string, unknown>): Promise<AuthUser> {
+  return request<AuthUser>("/users", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function getAuditLogs(): Promise<{ audit_logs: AuditLog[] }> {
+  return request<{ audit_logs: AuditLog[] }>("/audit-logs");
+}
+
+export function getSecurityPolicies(): Promise<{ local_mode: Record<string, string>; policies: Array<{ key: string; value_json: Record<string, unknown> }> }> {
+  return request<{ local_mode: Record<string, string>; policies: Array<{ key: string; value_json: Record<string, unknown> }> }>("/security/policies");
+}
+
+export function previewRedaction(text: string, policy?: Record<string, unknown>): Promise<{ redacted: string }> {
+  return request<{ redacted: string }>("/security/redaction/preview", { method: "POST", body: JSON.stringify({ text, policy }) });
+}
+
+export function getBackups(): Promise<{ backups: BackupRecord[] }> {
+  return request<{ backups: BackupRecord[] }>("/backups");
+}
+
+export function createBackup(includeUploads = false): Promise<BackupRecord> {
+  return request<BackupRecord>("/backups/create", { method: "POST", body: JSON.stringify({ include_uploads: includeUploads }) });
+}
+
+export function getLicense(): Promise<LicenseInfo> {
+  return request<LicenseInfo>("/license");
+}
+
+export function activateLicense(payload: Record<string, unknown>): Promise<LicenseInfo> {
+  return request<LicenseInfo>("/license/activate", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function loadDemoData(): Promise<{ status: string; report: unknown }> {
+  return request<{ status: string; report: unknown }>("/demo/load", { method: "POST" });
+}
+
+export function resetDemoData(): Promise<{ status: string }> {
+  return request<{ status: string }>("/demo/reset", { method: "POST" });
+}
+
+export function getSystemHealth(): Promise<SystemHealth> {
+  return request<SystemHealth>("/system/health");
 }

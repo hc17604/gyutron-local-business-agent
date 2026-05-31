@@ -21,6 +21,12 @@ It is not a SaaS dashboard and not a generic chatbot. Customer data, field mappi
 - Scheduled Owner Report generation
 - Local alerts with acknowledge / resolve
 - Overview, Data Sources, Automations, Reports, Agent Chat, Memory, Tasks, Audit Logs, Model Settings, and System Settings pages
+- First-run Onboarding Wizard
+- Local owner/admin/operator/viewer accounts
+- Security Center with data policy and redaction preview
+- Backup & Restore
+- Local trial/license structure
+- Demo data loading for customer presentations
 
 ## Local Development
 
@@ -47,17 +53,39 @@ Open:
 - Web: http://127.0.0.1:5173
 - API health: http://127.0.0.1:8000/health
 
+## Docker Deployment
+
+Copy `.env.example` to `.env`, adjust ports and paths, then run:
+
+```powershell
+.\scripts\start.ps1
+```
+
+or on Linux/macOS:
+
+```bash
+scripts/start.sh
+```
+
+Default Docker URLs:
+
+- Web: http://localhost:3000
+- API: http://localhost:8000
+
+Docker mounts `./data` into the API container, so SQLite, reports, backups, and runtime data persist after container restarts.
+
 ## Demo Flow
 
-1. Open Data Sources.
-2. Create a Local Folder connector for `D:\Codex\gyutron-local-business-agent\data\imports`.
-3. Put a `.csv`, `.xlsx`, or `.xls` file in that folder.
-4. Click Sync.
-5. Open Automations.
-6. Create Daily Owner Report.
-7. Click Run.
-8. Open Reports to view the generated local report.
-9. Open Overview to see the latest report summary, automation status, sync status, and open alerts.
+1. Open the web app for the first time.
+2. Complete Onboarding.
+3. Create the local owner account.
+4. Skip model setup or configure an OpenAI-compatible endpoint.
+5. Load Demo Data.
+6. Enter Overview.
+7. Generate an Owner Report.
+8. Open Audit Logs.
+9. Create a backup in Backup & Restore.
+10. Open Data Sources, create a Local Folder connector, and sync `.csv`, `.xlsx`, or `.xls` files.
 
 ## Local Data
 
@@ -70,6 +98,7 @@ data/
   reports/
   db/
     gyutron.sqlite3
+  backups/
 ```
 
 `data/` is ignored by Git. Do not place customer data, generated databases, API keys, reports, or uploads on the C drive.
@@ -85,3 +114,25 @@ data/
 - No automatic platform data modification.
 - No arbitrary shell execution by the Agent.
 - Medium and high-risk actions require explicit confirmation.
+
+## Local Roles
+
+- `owner`: full local control, backup/restore, users, model settings, patch apply.
+- `admin`: model settings, connectors, automations, audit logs.
+- `operator`: upload/sync data, generate reports, view dashboards.
+- `viewer`: read-only business views.
+
+## Backup And Restore
+
+Use the UI page `Backup & Restore` or:
+
+```bash
+scripts/backup.sh
+scripts/restore.sh data/backups/<backup-file>.zip
+```
+
+Uploads are excluded from API-created backups by default. Restore is owner-only and creates a pre-restore snapshot.
+
+## License Trial
+
+The MVP starts in local `trial` mode for 14 days. License activation is local-only for now and does not contact a remote payment or license server.

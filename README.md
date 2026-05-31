@@ -11,6 +11,22 @@
 - Docker Compose。
 - 本地数据目录：`data/uploads`、`data/reports`、`data/db`。
 
+第三阶段前端产品化界面已经包含：
+
+- 企业后台式 Sidebar + Header + 主内容区。
+- Overview 经营驾驶舱。
+- Agent Chat 本地业务 Agent 指令入口。
+- Ecommerce Dashboard 跨平台经营分析页。
+- Data Sources 数据源管理页。
+- Reports 老板日报管理页。
+- Tasks 任务中心。
+- Memory 本地记忆页。
+- Business Rules 业务规则页。
+- Audit Logs 审计日志页。
+- Model Settings 和 System Settings。
+
+当前只有 `/health` 接入真实后端 API；上传、报告、任务、记忆、规则等页面先使用前端 mock data service，方便后续替换为真实 API。
+
 ## 本地开发启动
 
 后端：
@@ -34,6 +50,15 @@ npm.cmd run dev
 
 - Web: http://localhost:5173
 - API health: http://localhost:8000/health
+
+## 演示路径
+
+1. 打开 Overview，查看经营 KPI、Agent Summary、平台表现、异常提醒和下一步行动。
+2. 进入 Agent Chat，查看本地业务 Agent 指令入口和右侧 Context Panel。
+3. 进入 Ecommerce Dashboard，查看跨平台趋势、国家市场、产品排名和高优先级客户。
+4. 进入 Data Sources，查看 Excel/CSV 当前可用和平台 API Coming Soon 入口。
+5. 进入 Reports，查看老板日报列表和 Markdown 风格报告详情。
+6. 进入 Model Settings，查看 OpenAI-compatible 模型配置入口。
 
 ## Docker Compose 启动
 

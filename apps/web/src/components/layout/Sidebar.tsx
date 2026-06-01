@@ -18,6 +18,7 @@ import {
   BadgeCheck,
   HeartPulse,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { NavigationItem, PageKey } from "../../types";
@@ -51,9 +52,27 @@ interface SidebarProps {
 export function Sidebar({ activePage, onNavigate }: SidebarProps) {
   const { i18n, t } = useTranslation();
   const currentLanguage = getCurrentLanguage();
+  const hideScrollbarTimer = useRef<number | undefined>(undefined);
+  const [isScrollbarVisible, setIsScrollbarVisible] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (hideScrollbarTimer.current) {
+        window.clearTimeout(hideScrollbarTimer.current);
+      }
+    };
+  }, []);
 
   function handleLanguageChange(language: SupportedLanguage) {
     void changeLanguage(language);
+  }
+
+  function showScrollbarTemporarily() {
+    setIsScrollbarVisible(true);
+    if (hideScrollbarTimer.current) {
+      window.clearTimeout(hideScrollbarTimer.current);
+    }
+    hideScrollbarTimer.current = window.setTimeout(() => setIsScrollbarVisible(false), 900);
   }
 
   return (
@@ -79,7 +98,13 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         ))}
       </div>
 
-      <nav className="sidebar-nav" aria-label={t("nav.overview")}>
+      <nav
+        className={isScrollbarVisible ? "sidebar-nav scrollbar-visible" : "sidebar-nav"}
+        aria-label={t("nav.overview")}
+        onMouseEnter={showScrollbarTemporarily}
+        onMouseMove={showScrollbarTemporarily}
+        onScroll={showScrollbarTemporarily}
+      >
         {navItems.map((item) => {
           const Icon = item.icon;
           return (

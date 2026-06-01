@@ -1,8 +1,10 @@
-import { Bot, Check, Code2, FileCode2, Loader2, Send, X } from "lucide-react";
+import { Bot, Check, Code2, FileCode2, Loader2, MessagesSquare, Send, ShieldCheck, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { applyPatch, getWorkspaceTree, proposePatch, sendAgentMessage } from "../../api/client";
 import type { AgentMode, PatchProposalResponse, WorkspaceNode } from "../../types/api";
+import { CommandButton } from "../common/CommandButton";
+import { ErrorState } from "../common/ErrorState";
 import { AgentMessage } from "./AgentMessage";
 
 const businessPrompts = [
@@ -179,6 +181,14 @@ export function AgentChat({
 
   return (
     <section className="chat-panel">
+      <div className="agent-command-center">
+        <div>
+          <p className="eyebrow">Command center</p>
+          <h2>Local business agent console</h2>
+          <p>Analyze synced data, business rules, local memories, reports, and selected project files without moving customer data to GyuTron cloud.</p>
+        </div>
+        <span><ShieldCheck size={15} /> Read-first mode</span>
+      </div>
       <div className="agent-toolbar">
         <div className="segmented-control" aria-label="Agent mode">
           {(["business", "engineering", "mixed"] as AgentMode[]).map((item) => (
@@ -192,9 +202,12 @@ export function AgentChat({
 
       <div className="prompt-row">
         {prompts.map((prompt) => (
-          <button className="chip-button" key={prompt} onClick={() => setInput(prompt)} type="button">
-            {prompt}
-          </button>
+          <CommandButton
+            icon={prompt.includes("report") ? Sparkles : prompt.includes("folder") || prompt.includes("file") ? FileCode2 : MessagesSquare}
+            key={prompt}
+            label={prompt}
+            onClick={() => setInput(prompt)}
+          />
         ))}
       </div>
 
@@ -219,7 +232,13 @@ export function AgentChat({
         {messages.map((message, index) => (
           <AgentMessage key={`${message.role}-${index}-${message.content.slice(0, 12)}`} message={message} />
         ))}
-        {error ? <div className="inline-error">{error}</div> : null}
+        {isSending ? (
+          <div className="agent-thinking">
+            <Loader2 size={16} />
+            <span>Agent is thinking, checking context, and preparing a structured response...</span>
+          </div>
+        ) : null}
+        {error ? <ErrorState message={error} /> : null}
       </div>
 
       {proposal ? (

@@ -78,7 +78,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         <ShieldCheck size={18} />
         <div>
           <strong>Local-first</strong>
-          <span>Data stays on this machine by default.</span>
+          <span>Data, reports, rules, and memories stay on this machine by default.</span>
         </div>
       </div>
     </aside>

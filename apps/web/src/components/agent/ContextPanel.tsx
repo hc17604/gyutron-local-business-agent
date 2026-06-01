@@ -1,4 +1,4 @@
-import { Code2, Database, FileText, ListChecks } from "lucide-react";
+import { Activity, Code2, Database, FileText, ListChecks, ShieldCheck } from "lucide-react";
 
 import { ToolCallList } from "./ToolCallList";
 
@@ -11,6 +11,13 @@ interface ContextPanelProps {
 export function ContextPanel({ workspaceRoot, selectedProjectPaths = [], latestTools }: ContextPanelProps) {
   return (
     <aside className="context-panel">
+      <div className="context-panel-head">
+        <div>
+          <p className="eyebrow">Agent context</p>
+          <h3>Local workspace</h3>
+        </div>
+        <ShieldCheck size={18} />
+      </div>
       <section>
         <h3>Selected business files</h3>
         <p>
@@ -55,7 +62,7 @@ export function ContextPanel({ workspaceRoot, selectedProjectPaths = [], latestT
         </p>
       </section>
       <section>
-        <h3>Tools available</h3>
+        <h3><Activity size={14} /> Tools available</h3>
         <ToolCallList tools={latestTools} />
       </section>
     </aside>

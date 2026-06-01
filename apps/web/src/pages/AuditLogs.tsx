@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 
 import { getAuditLogs } from "../api/client";
+import { EmptyState } from "../components/common/EmptyState";
 import { PageHeader } from "../components/common/PageHeader";
+import { SectionHeader } from "../components/common/SectionHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
 import type { AuditLog } from "../types/api";
 
@@ -16,7 +18,8 @@ export function AuditLogs() {
     <div className="page-stack">
       <PageHeader description="Show local audit records for logins, model settings, connector syncs, automations, backups, demo data, patch apply, and rollback." eyebrow="Enterprise traceability" title="Audit Logs" />
       <section className="panel">
-        <div className="table-wrap">
+        <SectionHeader title="Audit trail" description="Every medium or high-risk local action is written here for review." meta={`${logs.length} records`} />
+        {logs.length ? <div className="table-wrap">
           <table>
             <thead>
               <tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Risk</th><th>Summary</th></tr>
@@ -34,7 +37,7 @@ export function AuditLogs() {
               ))}
             </tbody>
           </table>
-        </div>
+        </div> : <EmptyState title="No audit logs yet" description="Logins, connector syncs, reports, backups, and policy changes will appear here automatically." />}
       </section>
     </div>
   );

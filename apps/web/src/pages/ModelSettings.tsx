@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { getModelProviders, getModelSettings, saveModelSettings, testModelSettings } from "../api/client";
 import { PageHeader } from "../components/common/PageHeader";
+import { SectionHeader } from "../components/common/SectionHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
 import type { ModelProvider, ModelSettingsResponse } from "../types/api";
 
@@ -115,9 +116,23 @@ export function ModelSettings() {
           </div>
         </article>
         <article className="panel">
-          <div className="panel-heading">
-            <h2>Provider behavior</h2>
-            <StatusBadge label={activeProvider?.requires_api_key ? "API key required" : "Local endpoint"} tone="neutral" />
+          <SectionHeader title="Provider behavior" description="Use Ollama or LM Studio for fully local inference. External API providers should follow your security policy." meta={activeProvider?.requires_api_key ? "API key required" : "Local endpoint"} />
+          <div className="provider-card-grid">
+            {providers.map((provider) => (
+              <button
+                className={settings.provider === provider.id ? "provider-card active" : "provider-card"}
+                key={provider.id}
+                onClick={() => {
+                  updateField("provider", provider.id);
+                  updateField("display_name", provider.label);
+                  updateField("base_url", provider.default_base_url);
+                }}
+                type="button"
+              >
+                <strong>{provider.label}</strong>
+                <span>{provider.requires_api_key ? "External or hosted endpoint" : "Local OpenAI-compatible endpoint"}</span>
+              </button>
+            ))}
           </div>
           <div className="settings-list">
             <div>

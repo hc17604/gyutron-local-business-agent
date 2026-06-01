@@ -2,7 +2,9 @@ import { FolderPlus, PlugZap, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { createConnector, getConnectors, syncConnector, testConnector } from "../api/client";
+import { EmptyState } from "../components/common/EmptyState";
 import { PageHeader } from "../components/common/PageHeader";
+import { SectionHeader } from "../components/common/SectionHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
 import type { ConnectorCatalogItem, DataConnector } from "../types/api";
 
@@ -61,10 +63,7 @@ export function DataSources() {
       />
 
       <section className="panel">
-        <div className="panel-heading">
-          <h2>Create local folder connector</h2>
-          <span>Allowed under workspace or data directory</span>
-        </div>
+        <SectionHeader title="Create local folder connector" description="Use a watched local folder for Alibaba, ERP, Shopee, Amazon, or Shopify exports." meta="Local only" />
         <label>
           Folder path
           <input onChange={(event) => setFolderPath(event.target.value)} value={folderPath} />
@@ -83,11 +82,8 @@ export function DataSources() {
       </section>
 
       <section className="panel">
-        <div className="panel-heading">
-          <h2>Configured connectors</h2>
-          <span>Sync jobs are stored locally</span>
-        </div>
-        <div className="table-wrap">
+        <SectionHeader title="Configured connectors" description="Sync jobs and imported file records are stored in the local SQLite database." />
+        {connectors.length ? <div className="table-wrap">
           <table>
             <thead>
               <tr>
@@ -125,7 +121,7 @@ export function DataSources() {
               ))}
             </tbody>
           </table>
-        </div>
+        </div> : <EmptyState title="No connectors configured" description="Create a Local Folder connector to import the first Excel or CSV export." />}
       </section>
     </div>
   );

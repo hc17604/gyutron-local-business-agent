@@ -1,10 +1,9 @@
-import { DatabaseZap, RefreshCw, Upload } from "lucide-react";
+import { Activity, DatabaseZap, HardDrive, RefreshCw, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { getHealth } from "../../api/client";
 import type { HealthResponse } from "../../types/api";
 import type { PageKey } from "../../types";
-import { StatusBadge } from "../common/StatusBadge";
 
 interface HeaderProps {
   title: string;
@@ -27,8 +26,8 @@ export function Header({ title, onNavigate }: HeaderProps) {
         <h1>{title}</h1>
       </div>
       <div className="header-actions">
-        <StatusBadge label="Local Mode" tone="success" />
-        <StatusBadge label={health ? "Model ready" : "API offline"} tone={health ? "info" : "warning"} />
+        <span className="header-pill success"><HardDrive size={14} />Local Mode</span>
+        <span className={health ? "header-pill info" : "header-pill warning"}><Activity size={14} />{health ? "API ready" : "API offline"}</span>
         <span className="last-sync">Updated 09:42</span>
         <button className="button secondary" onClick={() => onNavigate("sources")} type="button">
           <Upload size={16} />

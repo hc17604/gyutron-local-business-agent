@@ -87,6 +87,19 @@ Docker mounts `./data` into the API container, so SQLite, reports, backups, and 
 9. Create a backup in Backup & Restore.
 10. Open Data Sources, create a Local Folder connector, and sync `.csv`, `.xlsx`, or `.xls` files.
 
+## UI Preview Notes
+
+The current interface is designed as a restrained enterprise desktop console:
+
+- AppShell with dark local-first sidebar and compact operations header.
+- Agent Chat as a command center, with mode switching, command chips, structured messages, tool metadata, loading, and error states.
+- Data Sources as a connector management center.
+- Reports as readable owner-report sections instead of raw Markdown.
+- Model Settings with provider cards and local model guidance.
+- Audit Logs with a real local audit trail and empty state.
+
+The visual system uses shared tokens in `apps/web/src/styles/globals.css` for colors, spacing, radius, shadows, buttons, badges, cards, tables, and form controls.
+
 ## Local Data
 
 Runtime data is stored under:

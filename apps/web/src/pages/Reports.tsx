@@ -1,7 +1,9 @@
 import { FilePlus2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { generateOwnerReport, getReports } from "../api/client";
+import { getCurrentLanguage } from "../i18n";
 import { PageHeader } from "../components/common/PageHeader";
 import { EmptyState } from "../components/common/EmptyState";
 import { SectionHeader } from "../components/common/SectionHeader";
@@ -11,6 +13,7 @@ import { reports as mockReports } from "../data/mockDashboard";
 import type { LocalReport } from "../types/api";
 
 export function Reports() {
+  const { t } = useTranslation();
   const [reports, setReports] = useState<LocalReport[]>([]);
   const [message, setMessage] = useState<string>();
 
@@ -24,7 +27,7 @@ export function Reports() {
   }, []);
 
   async function handleGenerate() {
-    const result = await generateOwnerReport();
+    const result = await generateOwnerReport(getCurrentLanguage());
     setMessage(result.summary);
     await refresh();
   }
@@ -35,25 +38,25 @@ export function Reports() {
         actions={
           <button className="button primary" onClick={handleGenerate} type="button">
             <FilePlus2 size={16} />
-            Generate Report
+            {t("reports.generateReport")}
           </button>
         }
-        description="Manage owner daily reports, scheduled reports, and Agent-generated analyses."
-        eyebrow="Local report history"
-        title="Reports"
+        description={t("reports.description")}
+        eyebrow={t("reports.eyebrow")}
+        title={t("reports.title")}
       />
       {message ? <div className="inline-info">{message}</div> : null}
 
       <section className="grid two-columns">
         <article className="panel">
-          <SectionHeader title="Report list" meta={reports.length ? "Local database" : "Demo workspace"} />
+          <SectionHeader title={t("reports.reportList")} meta={reports.length ? t("reports.localDatabase") : t("reports.demoWorkspace")} />
           <div className="list-stack">
             {reports.length
               ? reports.map((report) => (
                   <article className="record-card" key={report.id}>
                     <div>
                       <strong>{report.title}</strong>
-                      <span>Scheduled / Automation / {report.created_at}</span>
+                      <span>{t("reports.scheduledAutomation")} / {report.created_at}</span>
                     </div>
                     <StatusBadge label={report.status} tone={report.status === "ready" ? "success" : "warning"} />
                   </article>
@@ -74,27 +77,27 @@ export function Reports() {
         {reports[0]?.content_markdown ? (
           <article className="report-viewer">
             <div className="report-header-block">
-              <p className="eyebrow">Owner report</p>
+              <p className="eyebrow">{t("reports.ownerReport")}</p>
               <h2>{reports[0].title}</h2>
-              <span>Generated locally / {reports[0].created_at}</span>
+              <span>{t("reports.generatedLocally")} / {reports[0].created_at} / {t("reports.language")}: {getCurrentLanguage()}</span>
             </div>
             <div className="report-section-card">
-              <h3>Executive Summary</h3>
-              <p>{reports[0].content_markdown.split("## Owner Summary")[1]?.split("##")[0]?.trim() || "No summary available yet."}</p>
+              <h3>{t("reports.executiveSummary")}</h3>
+              <p>{reports[0].content_markdown.split("## Owner Summary")[1]?.split("##")[0]?.trim() || reports[0].content_markdown.split("## 老板摘要")[1]?.split("##")[0]?.trim() || t("reports.noSummary")}</p>
             </div>
             <div className="report-section-card warning-callout">
-              <h3>Risks</h3>
-              <p>{reports[0].content_markdown.split("## Anomaly Alerts")[1]?.split("##")[0]?.trim() || "No risks found."}</p>
+              <h3>{t("reports.risks")}</h3>
+              <p>{reports[0].content_markdown.split("## Anomaly Alerts")[1]?.split("##")[0]?.trim() || reports[0].content_markdown.split("## 异常提醒")[1]?.split("##")[0]?.trim() || t("reports.noRisks")}</p>
             </div>
             <div className="report-section-card">
-              <h3>Action Items</h3>
-              <pre className="report-markdown">{reports[0].content_markdown.split("## Sales Follow-up Tasks")[1]?.trim() || reports[0].content_markdown}</pre>
+              <h3>{t("reports.actionItems")}</h3>
+              <pre className="report-markdown">{reports[0].content_markdown.split("## Sales Follow-up Tasks")[1]?.trim() || reports[0].content_markdown.split("## 销售跟进任务")[1]?.trim() || reports[0].content_markdown}</pre>
             </div>
           </article>
         ) : reports.length || mockReports.length ? (
           <ReportViewer />
         ) : (
-          <EmptyState title="No reports yet" description="Generate the first owner daily report from local connector data." />
+          <EmptyState title={t("reports.noReports")} description={t("reports.noReportsDescription")} />
         )}
       </section>
     </div>

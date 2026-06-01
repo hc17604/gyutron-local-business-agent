@@ -100,6 +100,18 @@ The current interface is designed as a restrained enterprise desktop console:
 
 The visual system uses shared tokens in `apps/web/src/styles/globals.css` for colors, spacing, radius, shadows, buttons, badges, cards, tables, and form controls.
 
+## Internationalization
+
+The web app uses `react-i18next` with one shared React UI and language packs. Do not create duplicate Chinese pages or component copies.
+
+- Switch language from the small `EN / 中文` control near the GyuTron logo in the sidebar.
+- The selected language is saved to `localStorage` as `gyutron_lang`.
+- If no language is saved, Chinese browsers default to `zh-CN`; all other browsers default to `en`.
+- Language files live in `apps/web/src/i18n/locales/en.json` and `apps/web/src/i18n/locales/zh-CN.json`.
+- Add new English copy to `en.json`, then add the matching Simplified Chinese copy to `zh-CN.json`.
+- New UI text should use `useTranslation()` and `t("module.key")`; do not hardcode fixed UI copy in page components.
+- Reports and Agent Chat requests send the current UI language to the backend so generated content can match the selected language.
+
 ## Local Data
 
 Runtime data is stored under:

@@ -1,5 +1,6 @@
 import { EyeOff, PlugZap, Save } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { getModelProviders, getModelSettings, saveModelSettings, testModelSettings } from "../api/client";
 import { PageHeader } from "../components/common/PageHeader";
@@ -19,9 +20,10 @@ const fallbackSettings: ModelSettingsResponse = {
 };
 
 export function ModelSettings() {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<ModelSettingsResponse>(fallbackSettings);
   const [providers, setProviders] = useState<ModelProvider[]>([]);
-  const [status, setStatus] = useState<string>("Not tested");
+  const [status, setStatus] = useState<string>("notTested");
   const [error, setError] = useState<string>();
   const activeProvider = providers.find((provider) => provider.id === settings.provider);
 
@@ -39,7 +41,7 @@ export function ModelSettings() {
     try {
       const saved = await saveModelSettings(settings);
       setSettings(saved);
-      setStatus("Saved");
+      setStatus("saved");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Save failed.");
     }
@@ -47,12 +49,12 @@ export function ModelSettings() {
 
   async function handleTest() {
     setError(undefined);
-    setStatus("Testing...");
+    setStatus("testing");
     try {
       await testModelSettings(settings);
-      setStatus("Connected");
+      setStatus("connected");
     } catch (caught) {
-      setStatus("Failed");
+      setStatus("failed");
       setError(caught instanceof Error ? caught.message : "Connection failed.");
     }
   }
@@ -60,18 +62,18 @@ export function ModelSettings() {
   return (
     <div className="page-stack">
       <PageHeader
-        description="Configure customer-owned model credentials. API keys are stored locally, masked in the UI, and never printed by the app."
-        eyebrow="Model provider"
-        title="Model Settings"
+        description={t("modelSettings.description")}
+        eyebrow={t("modelSettings.eyebrow")}
+        title={t("modelSettings.title")}
       />
       <section className="settings-grid">
         <article className="panel">
           <div className="panel-heading">
-            <h2>Active model</h2>
-            <StatusBadge label={status} tone={status === "Connected" ? "success" : status === "Failed" ? "risk" : "info"} />
+            <h2>{t("modelSettings.activeModel")}</h2>
+            <StatusBadge label={t(`common.${status}`)} tone={status === "connected" ? "success" : status === "failed" ? "risk" : "info"} />
           </div>
           <label>
-            Provider
+            {t("modelSettings.provider")}
             <select
               onChange={(event) => {
                 const provider = providers.find((item) => item.id === event.target.value);
@@ -89,34 +91,34 @@ export function ModelSettings() {
             </select>
           </label>
           <label>
-            Base URL
+            {t("modelSettings.baseUrl")}
             <input onChange={(event) => updateField("base_url", event.target.value)} value={settings.base_url} />
           </label>
           <label>
-            API Key
+            {t("modelSettings.apiKey")}
             <div className="input-with-icon">
               <input onChange={(event) => updateField("api_key", event.target.value)} type="password" value={settings.api_key} />
               <EyeOff size={16} />
             </div>
           </label>
           <label>
-            Model Name
+            {t("modelSettings.modelName")}
             <input onChange={(event) => updateField("model_name", event.target.value)} value={settings.model_name} />
           </label>
           {error ? <div className="inline-error">{error}</div> : null}
           <div className="page-header-actions">
             <button className="button secondary" onClick={handleSave} type="button">
               <Save size={16} />
-              Save
+              {t("common.save")}
             </button>
             <button className="button primary" onClick={handleTest} type="button">
               <PlugZap size={16} />
-              Test Connection
+              {t("modelSettings.testConnection")}
             </button>
           </div>
         </article>
         <article className="panel">
-          <SectionHeader title="Provider behavior" description="Use Ollama or LM Studio for fully local inference. External API providers should follow your security policy." meta={activeProvider?.requires_api_key ? "API key required" : "Local endpoint"} />
+          <SectionHeader title={t("modelSettings.providerBehavior")} description={t("modelSettings.providerBehaviorDescription")} meta={activeProvider?.requires_api_key ? t("modelSettings.apiKeyRequired") : t("modelSettings.localEndpoint")} />
           <div className="provider-card-grid">
             {providers.map((provider) => (
               <button
@@ -130,7 +132,7 @@ export function ModelSettings() {
                 type="button"
               >
                 <strong>{provider.label}</strong>
-                <span>{provider.requires_api_key ? "External or hosted endpoint" : "Local OpenAI-compatible endpoint"}</span>
+                <span>{provider.requires_api_key ? t("modelSettings.externalEndpoint") : t("modelSettings.localCompatibleEndpoint")}</span>
               </button>
             ))}
           </div>
@@ -148,8 +150,8 @@ export function ModelSettings() {
               <span>http://localhost:1234/v1</span>
             </div>
             <div>
-              <strong>Security</strong>
-              <span>Local save, masked return, no key logging</span>
+              <strong>{t("modelSettings.security")}</strong>
+              <span>{t("modelSettings.securityDescription")}</span>
             </div>
           </div>
         </article>

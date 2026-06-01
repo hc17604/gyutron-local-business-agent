@@ -1,4 +1,5 @@
 import { BarChart3 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { PageHeader } from "../components/common/PageHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
@@ -8,29 +9,40 @@ import { ProductRanking } from "../components/ecommerce/ProductRanking";
 import { RevenueChart } from "../components/ecommerce/RevenueChart";
 import { metrics } from "../data/mockDashboard";
 
-const filters = ["Today", "7 days", "30 days", "Custom"];
-const platforms = ["All Platforms", "Alibaba", "Shopee", "Amazon", "TikTok Shop", "Shopify", "ERP"];
+const filterKeys = ["dashboard.today", "dashboard.sevenDays", "dashboard.thirtyDays", "dashboard.custom"];
+const platforms = ["dashboard.allPlatforms", "Alibaba", "Shopee", "Amazon", "TikTok Shop", "Shopify", "ERP"];
+
+const metricKeyByLabel: Record<string, string> = {
+  "Total Revenue": "dashboard.totalRevenue",
+  "Total Orders": "dashboard.totalOrders",
+  "New Inquiries": "dashboard.newInquiries",
+  "High Priority Leads": "dashboard.highPriorityLeads",
+  "Pending Follow-ups": "dashboard.pendingFollowups",
+  "Risk Alerts": "dashboard.riskAlerts",
+};
 
 export function EcommerceDashboard() {
+  const { t } = useTranslation();
+
   return (
     <div className="page-stack">
       <PageHeader
-        actions={<StatusBadge label="Mock data" tone="warning" />}
-        description="Cross-platform view for revenue, orders, inquiries, conversion, margin, ads, and follow-up status."
-        eyebrow="Cross-platform operations"
-        title="Ecommerce performance"
+        actions={<StatusBadge label={t("dashboard.mockData")} tone="warning" />}
+        description={t("dashboard.description")}
+        eyebrow={t("dashboard.eyebrow")}
+        title={t("dashboard.pageTitle")}
       />
 
       <section className="filter-row">
-        {filters.map((filter) => (
-          <button className={filter === "7 days" ? "chip-button active" : "chip-button"} key={filter} type="button">
-            {filter}
+        {filterKeys.map((filterKey) => (
+          <button className={filterKey === "dashboard.sevenDays" ? "chip-button active" : "chip-button"} key={filterKey} type="button">
+            {t(filterKey)}
           </button>
         ))}
         <span className="filter-divider" />
         {platforms.map((platform) => (
-          <button className={platform === "All Platforms" ? "chip-button active" : "chip-button"} key={platform} type="button">
-            {platform}
+          <button className={platform === "dashboard.allPlatforms" ? "chip-button active" : "chip-button"} key={platform} type="button">
+            {platform.startsWith("dashboard.") ? t(platform) : platform}
           </button>
         ))}
       </section>
@@ -38,7 +50,7 @@ export function EcommerceDashboard() {
       <section className="metric-grid compact">
         {metrics.slice(0, 6).map((metric) => (
           <article className="mini-metric" key={metric.label}>
-            <span>{metric.label}</span>
+            <span>{t(metricKeyByLabel[metric.label] ?? metric.label)}</span>
             <strong>{metric.value}</strong>
           </article>
         ))}
@@ -49,16 +61,16 @@ export function EcommerceDashboard() {
           <div className="panel-heading">
             <h2>
               <BarChart3 size={18} />
-              Revenue trend
+              {t("dashboard.revenueTrend")}
             </h2>
-            <span>Last 7 days</span>
+            <span>{t("dashboard.lastSevenDays")}</span>
           </div>
           <RevenueChart />
         </article>
         <article className="panel">
           <div className="panel-heading">
-            <h2>Inquiries by country</h2>
-            <span>Top markets</span>
+            <h2>{t("dashboard.inquiriesByCountry")}</h2>
+            <span>{t("dashboard.topMarkets")}</span>
           </div>
           <CountryRanking />
         </article>
@@ -67,13 +79,13 @@ export function EcommerceDashboard() {
       <section className="grid two-columns">
         <article className="panel">
           <div className="panel-heading">
-            <h2>Product performance ranking</h2>
+            <h2>{t("dashboard.productRanking")}</h2>
           </div>
           <ProductRanking />
         </article>
         <article className="panel">
           <div className="panel-heading">
-            <h2>High priority leads</h2>
+            <h2>{t("dashboard.highPriorityLeads")}</h2>
           </div>
           <LeadTable />
         </article>

@@ -1,5 +1,6 @@
 import { Activity, DatabaseZap, HardDrive, RefreshCw, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { getHealth } from "../../api/client";
 import type { HealthResponse } from "../../types/api";
@@ -11,6 +12,7 @@ interface HeaderProps {
 }
 
 export function Header({ title, onNavigate }: HeaderProps) {
+  const { t } = useTranslation();
   const [health, setHealth] = useState<HealthResponse | null>(null);
 
   useEffect(() => {
@@ -22,22 +24,22 @@ export function Header({ title, onNavigate }: HeaderProps) {
   return (
     <header className="top-header">
       <div>
-        <p className="eyebrow">Business operations workspace</p>
+        <p className="eyebrow">{t("header.workspace")}</p>
         <h1>{title}</h1>
       </div>
       <div className="header-actions">
-        <span className="header-pill success"><HardDrive size={14} />Local Mode</span>
-        <span className={health ? "header-pill info" : "header-pill warning"}><Activity size={14} />{health ? "API ready" : "API offline"}</span>
-        <span className="last-sync">Updated 09:42</span>
+        <span className="header-pill success"><HardDrive size={14} />{t("header.localMode")}</span>
+        <span className={health ? "header-pill info" : "header-pill warning"}><Activity size={14} />{health ? t("header.apiReady") : t("header.apiOffline")}</span>
+        <span className="last-sync">{t("header.updatedAt")}</span>
         <button className="button secondary" onClick={() => onNavigate("sources")} type="button">
           <Upload size={16} />
-          Upload Data
+          {t("header.uploadData")}
         </button>
         <button className="button primary" onClick={() => onNavigate("reports")} type="button">
           <DatabaseZap size={16} />
-          Generate Report
+          {t("header.generateReport")}
         </button>
-        <button aria-label="Refresh" className="icon-button" type="button">
+        <button aria-label={t("common.refresh")} className="icon-button" type="button">
           <RefreshCw size={16} />
         </button>
       </div>

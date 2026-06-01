@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { getAuditLogs } from "../api/client";
 import { EmptyState } from "../components/common/EmptyState";
@@ -8,6 +9,7 @@ import { StatusBadge } from "../components/common/StatusBadge";
 import type { AuditLog } from "../types/api";
 
 export function AuditLogs() {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<AuditLog[]>([]);
 
   useEffect(() => {
@@ -16,13 +18,13 @@ export function AuditLogs() {
 
   return (
     <div className="page-stack">
-      <PageHeader description="Show local audit records for logins, model settings, connector syncs, automations, backups, demo data, patch apply, and rollback." eyebrow="Enterprise traceability" title="Audit Logs" />
+      <PageHeader description={t("auditLogs.description")} eyebrow={t("auditLogs.eyebrow")} title={t("auditLogs.title")} />
       <section className="panel">
-        <SectionHeader title="Audit trail" description="Every medium or high-risk local action is written here for review." meta={`${logs.length} records`} />
+        <SectionHeader title={t("auditLogs.auditTrail")} description={t("auditLogs.auditTrailDescription")} meta={t("auditLogs.records", { count: logs.length })} />
         {logs.length ? <div className="table-wrap">
           <table>
             <thead>
-              <tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Risk</th><th>Summary</th></tr>
+              <tr><th>{t("auditLogs.time")}</th><th>{t("auditLogs.actor")}</th><th>{t("auditLogs.action")}</th><th>{t("auditLogs.target")}</th><th>{t("auditLogs.risk")}</th><th>{t("auditLogs.summary")}</th></tr>
             </thead>
             <tbody>
               {logs.map((log) => (
@@ -37,7 +39,7 @@ export function AuditLogs() {
               ))}
             </tbody>
           </table>
-        </div> : <EmptyState title="No audit logs yet" description="Logins, connector syncs, reports, backups, and policy changes will appear here automatically." />}
+        </div> : <EmptyState title={t("auditLogs.noLogs")} description={t("auditLogs.noLogsDescription")} />}
       </section>
     </div>
   );

@@ -1,4 +1,5 @@
 import { Activity, Code2, Database, FileText, ListChecks, ShieldCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { ToolCallList } from "./ToolCallList";
 
@@ -9,17 +10,18 @@ interface ContextPanelProps {
 }
 
 export function ContextPanel({ workspaceRoot, selectedProjectPaths = [], latestTools }: ContextPanelProps) {
+  const { t } = useTranslation();
   return (
     <aside className="context-panel">
       <div className="context-panel-head">
         <div>
-          <p className="eyebrow">Agent context</p>
-          <h3>Local workspace</h3>
+          <p className="eyebrow">{t("agentChat.agentContext")}</p>
+          <h3>{t("agentChat.localWorkspace")}</h3>
         </div>
         <ShieldCheck size={18} />
       </div>
       <section>
-        <h3>Selected business files</h3>
+        <h3>{t("agentChat.selectedFiles")}</h3>
         <p>
           <FileText size={15} />
           alibaba_inquiries_may.csv
@@ -30,7 +32,7 @@ export function ContextPanel({ workspaceRoot, selectedProjectPaths = [], latestT
         </p>
       </section>
       <section>
-        <h3>Selected project files</h3>
+        <h3>{t("agentChat.selectedProjectFiles")}</h3>
         {selectedProjectPaths.length ? (
           selectedProjectPaths.map((path) => (
             <p key={path}>
@@ -39,30 +41,30 @@ export function ContextPanel({ workspaceRoot, selectedProjectPaths = [], latestT
             </p>
           ))
         ) : (
-          <p className="muted">No project files selected</p>
+          <p className="muted">{t("agentChat.noProjectFilesSelected")}</p>
         )}
-        {workspaceRoot ? <p className="muted">Root: {workspaceRoot}</p> : null}
+        {workspaceRoot ? <p className="muted">{t("agentChat.root")}: {workspaceRoot}</p> : null}
       </section>
       <section>
-        <h3>Active business rules</h3>
+        <h3>{t("agentChat.activeBusinessRules")}</h3>
         <p>
           <ListChecks size={15} />
-          Brazil priority
+          {t("agentChat.brazilPriority")}
         </p>
         <p>
           <ListChecks size={15} />
-          24h no follow-up alert
+          {t("agentChat.noFollowupAlert")}
         </p>
       </section>
       <section>
-        <h3>Local memories used</h3>
+        <h3>{t("agentChat.localMemoriesUsed")}</h3>
         <p>
           <Database size={15} />
-          Product focus: IC-420, BS-90
+          {t("agentChat.productFocus")}
         </p>
       </section>
       <section>
-        <h3><Activity size={14} /> Tools available</h3>
+        <h3><Activity size={14} /> {t("agentChat.toolsAvailable")}</h3>
         <ToolCallList tools={latestTools} />
       </section>
     </aside>

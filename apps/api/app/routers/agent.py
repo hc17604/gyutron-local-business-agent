@@ -53,6 +53,7 @@ class ChatContext(BaseModel):
 class ChatPayload(BaseModel):
     message: str
     mode: str = "business"
+    language: str | None = "en"
     conversation_id: str | None = None
     context: ChatContext = ChatContext()
 
@@ -153,6 +154,9 @@ async def agent_chat(payload: ChatPayload):
     elif payload.mode == "mixed":
         system_prompt = f"{BUSINESS_SYSTEM_PROMPT}\n\n{ENGINEERING_SYSTEM_PROMPT}"
 
+    language = payload.language or "en"
+    system_prompt = f"{system_prompt}\n\nRespond in this UI language unless the user explicitly asks otherwise: {language}."
+
     context_text = ""
     if project_files:
         context_text = "\n\nAuthorized project context:\n" + "\n\n".join(
@@ -171,14 +175,14 @@ async def agent_chat(payload: ChatPayload):
         conversation_id,
         "assistant",
         answer,
-        {"mode": payload.mode, "data_sources_used": project_paths, "tools_called": ["llm.chat"]},
+        {"mode": payload.mode, "language": language, "data_sources_used": project_paths, "tools_called": ["llm.chat"]},
     )
     write_audit_log(
         "agent_chat_message",
         "conversation",
         target_id=conversation_id,
         risk_level="low" if payload.mode == "business" else "medium",
-        input_summary=f"mode={payload.mode}, message_length={len(payload.message)}",
+        input_summary=f"mode={payload.mode}, language={language}, message_length={len(payload.message)}",
         output_summary=f"answer_length={len(answer)}",
     )
     return {
@@ -186,6 +190,7 @@ async def agent_chat(payload: ChatPayload):
         "message_id": message_id,
         "answer": answer,
         "mode": payload.mode,
+        "language": language,
         "tools_called": ["llm.chat"],
         "data_sources_used": project_paths,
         "suggested_actions": [],

@@ -96,6 +96,7 @@ export function getModelProviders(): Promise<{ providers: ModelProvider[] }> {
 export function sendAgentMessage(payload: {
   message: string;
   mode: AgentMode;
+  language?: string;
   conversation_id?: string;
   context: {
     selected_file_ids: string[];
@@ -192,8 +193,11 @@ export function getReports(): Promise<{ reports: LocalReport[] }> {
   return request<{ reports: LocalReport[] }>("/reports");
 }
 
-export function generateOwnerReport(): Promise<{ report_id: number; title: string; summary: string }> {
-  return request<{ report_id: number; title: string; summary: string }>("/reports/generate-owner-report", { method: "POST" });
+export function generateOwnerReport(language?: string): Promise<{ report_id: number; title: string; summary: string; language?: string }> {
+  return request<{ report_id: number; title: string; summary: string; language?: string }>("/reports/generate-owner-report", {
+    method: "POST",
+    body: JSON.stringify({ language }),
+  });
 }
 
 export function getAlerts(): Promise<{ alerts: LocalAlert[] }> {

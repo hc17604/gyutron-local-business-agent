@@ -18,27 +18,29 @@ import {
   BadgeCheck,
   HeartPulse,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import type { NavigationItem, PageKey } from "../../types";
+import { changeLanguage, getCurrentLanguage, type SupportedLanguage } from "../../i18n";
 
 const navItems: NavigationItem[] = [
-  { key: "overview", label: "Overview", icon: Home },
-  { key: "agent", label: "Agent Chat", icon: Bot },
-  { key: "ecommerce", label: "Ecommerce Dashboard", icon: BarChart3 },
-  { key: "sources", label: "Data Sources", icon: Database },
-  { key: "reports", label: "Reports", icon: FileText },
-  { key: "automations", label: "Automations", icon: PlaySquare },
-  { key: "tasks", label: "Tasks", icon: ClipboardList },
-  { key: "memory", label: "Memory", icon: Brain },
-  { key: "rules", label: "Business Rules", icon: ListChecks },
-  { key: "audit", label: "Audit Logs", icon: History },
-  { key: "security", label: "Security Center", icon: Shield },
-  { key: "backups", label: "Backup & Restore", icon: ArchiveRestore },
-  { key: "license", label: "License", icon: BadgeCheck },
-  { key: "health", label: "System Health", icon: HeartPulse },
-  { key: "users", label: "Users", icon: UserRound },
-  { key: "models", label: "Model Settings", icon: KeyRound },
-  { key: "system", label: "System Settings", icon: Settings },
+  { key: "overview", label: "nav.overview", icon: Home },
+  { key: "agent", label: "nav.agentChat", icon: Bot },
+  { key: "ecommerce", label: "nav.ecommerceDashboard", icon: BarChart3 },
+  { key: "sources", label: "nav.dataSources", icon: Database },
+  { key: "reports", label: "nav.reports", icon: FileText },
+  { key: "automations", label: "nav.automations", icon: PlaySquare },
+  { key: "tasks", label: "nav.tasks", icon: ClipboardList },
+  { key: "memory", label: "nav.memory", icon: Brain },
+  { key: "rules", label: "nav.businessRules", icon: ListChecks },
+  { key: "audit", label: "nav.auditLogs", icon: History },
+  { key: "security", label: "nav.securityCenter", icon: Shield },
+  { key: "backups", label: "nav.backupRestore", icon: ArchiveRestore },
+  { key: "license", label: "nav.license", icon: BadgeCheck },
+  { key: "health", label: "nav.systemHealth", icon: HeartPulse },
+  { key: "users", label: "nav.users", icon: UserRound },
+  { key: "models", label: "nav.modelSettings", icon: KeyRound },
+  { key: "system", label: "nav.systemSettings", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -47,14 +49,34 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+  const { i18n, t } = useTranslation();
+  const currentLanguage = getCurrentLanguage();
+
+  function handleLanguageChange(language: SupportedLanguage) {
+    void changeLanguage(language);
+  }
+
   return (
     <aside className="sidebar">
       <div className="brand">
         <div className="brand-mark">GT</div>
         <div>
           <strong>GyuTron</strong>
-          <span>Local Agent</span>
+          <span>{t("brand.localAgent")}</span>
         </div>
+      </div>
+
+      <div className="language-switcher" aria-label={t("language.switchLanguage")}>
+        {(["en", "zh-CN"] as SupportedLanguage[]).map((language) => (
+          <button
+            className={currentLanguage === language || i18n.language === language ? "active" : ""}
+            key={language}
+            onClick={() => handleLanguageChange(language)}
+            type="button"
+          >
+            {language === "en" ? t("language.english") : t("language.chinese")}
+          </button>
+        ))}
       </div>
 
       <nav className="sidebar-nav" aria-label="Main navigation">
@@ -68,7 +90,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
               type="button"
             >
               <Icon size={18} />
-              <span>{item.label}</span>
+              <span>{t(item.label)}</span>
             </button>
           );
         })}
@@ -77,8 +99,8 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
       <div className="sidebar-foot">
         <ShieldCheck size={18} />
         <div>
-          <strong>Local-first</strong>
-          <span>Data, reports, rules, and memories stay on this machine by default.</span>
+          <strong>{t("brand.localFirst")}</strong>
+          <span>{t("brand.localFirstDescription")}</span>
         </div>
       </div>
     </aside>

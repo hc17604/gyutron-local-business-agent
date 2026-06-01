@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
+import { useTranslation } from "react-i18next";
 
 import { getMe, getSetupStatus } from "./api/client";
 import { Header } from "./components/layout/Header";
@@ -26,27 +27,28 @@ import { Users } from "./pages/Users";
 import type { AuthUser } from "./types/api";
 import type { PageKey } from "./types";
 
-const pageMap: Record<PageKey, { title: string; component: ReactElement }> = {
-  overview: { title: "Overview", component: <Overview /> },
-  agent: { title: "Agent Chat", component: <AgentChatPage /> },
-  ecommerce: { title: "Ecommerce Dashboard", component: <EcommerceDashboard /> },
-  sources: { title: "Data Sources", component: <DataSources /> },
-  reports: { title: "Reports", component: <Reports /> },
-  automations: { title: "Automations", component: <Automations /> },
-  tasks: { title: "Tasks", component: <Tasks /> },
-  memory: { title: "Memory", component: <Memory /> },
-  rules: { title: "Business Rules", component: <BusinessRules /> },
-  audit: { title: "Audit Logs", component: <AuditLogs /> },
-  security: { title: "Security Center", component: <SecurityCenter /> },
-  backups: { title: "Backup & Restore", component: <BackupRestore /> },
-  license: { title: "License", component: <License /> },
-  health: { title: "System Health", component: <SystemHealth /> },
-  users: { title: "Users", component: <Users /> },
-  models: { title: "Model Settings", component: <ModelSettings /> },
-  system: { title: "System Settings", component: <SystemSettings /> },
+const pageMap: Record<PageKey, { titleKey: string; component: ReactElement }> = {
+  overview: { titleKey: "nav.overview", component: <Overview /> },
+  agent: { titleKey: "nav.agentChat", component: <AgentChatPage /> },
+  ecommerce: { titleKey: "nav.ecommerceDashboard", component: <EcommerceDashboard /> },
+  sources: { titleKey: "nav.dataSources", component: <DataSources /> },
+  reports: { titleKey: "nav.reports", component: <Reports /> },
+  automations: { titleKey: "nav.automations", component: <Automations /> },
+  tasks: { titleKey: "nav.tasks", component: <Tasks /> },
+  memory: { titleKey: "nav.memory", component: <Memory /> },
+  rules: { titleKey: "nav.businessRules", component: <BusinessRules /> },
+  audit: { titleKey: "nav.auditLogs", component: <AuditLogs /> },
+  security: { titleKey: "nav.securityCenter", component: <SecurityCenter /> },
+  backups: { titleKey: "nav.backupRestore", component: <BackupRestore /> },
+  license: { titleKey: "nav.license", component: <License /> },
+  health: { titleKey: "nav.systemHealth", component: <SystemHealth /> },
+  users: { titleKey: "nav.users", component: <Users /> },
+  models: { titleKey: "nav.modelSettings", component: <ModelSettings /> },
+  system: { titleKey: "nav.systemSettings", component: <SystemSettings /> },
 };
 
 export function App() {
+  const { t } = useTranslation();
   const [activePage, setActivePage] = useState<PageKey>("overview");
   const [setupState, setSetupState] = useState<"loading" | "needs_setup" | "ready">("loading");
   const [user, setUser] = useState<AuthUser>();
@@ -74,7 +76,7 @@ export function App() {
   }, []);
 
   if (setupState === "loading") {
-    return <div className="loading-state">Loading GyuTron Local Agent...</div>;
+    return <div className="loading-state">{t("common.loading")} GyuTron Local Agent...</div>;
   }
 
   if (setupState === "needs_setup") {
@@ -89,7 +91,7 @@ export function App() {
     <div className="app-frame">
       <Sidebar activePage={activePage} onNavigate={setActivePage} />
       <div className="app-main">
-        <Header title={page.title} onNavigate={setActivePage} />
+        <Header title={t(page.titleKey)} onNavigate={setActivePage} />
         <div className="page-container">{page.component}</div>
       </div>
     </div>

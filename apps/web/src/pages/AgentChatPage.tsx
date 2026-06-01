@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { AgentChat } from "../components/agent/AgentChat";
 import { ContextPanel } from "../components/agent/ContextPanel";
 import { PageHeader } from "../components/common/PageHeader";
 
 export function AgentChatPage() {
+  const { t } = useTranslation();
   const [selectedProjectPaths, setSelectedProjectPaths] = useState<string[]>([]);
   const [workspaceRoot, setWorkspaceRoot] = useState<string>();
   const [latestTools, setLatestTools] = useState<string[]>([]);
@@ -12,9 +14,9 @@ export function AgentChatPage() {
   return (
     <div className="page-stack">
       <PageHeader
-        description="Ask the local business agent to analyze uploaded files, business rules, local memories, and report history."
-        eyebrow="Command center"
-        title="Local business agent"
+        description={t("agentChat.description")}
+        eyebrow={t("agentChat.commandCenter")}
+        title={t("agentChat.localBusinessAgent")}
       />
       <div className="agent-layout">
         <AgentChat

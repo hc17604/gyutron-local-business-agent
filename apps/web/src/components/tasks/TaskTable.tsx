@@ -1,18 +1,22 @@
+import { useTranslation } from "react-i18next";
+
 import { tasks } from "../../data/mockDashboard";
 import { StatusBadge } from "../common/StatusBadge";
 
 export function TaskTable() {
+  const { t } = useTranslation();
+
   return (
     <div className="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Task title</th>
-            <th>Mode</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Completed</th>
-            <th>Result summary</th>
+            <th>{t("tasks.taskTitle")}</th>
+            <th>{t("tasks.mode")}</th>
+            <th>{t("common.status")}</th>
+            <th>{t("tasks.created")}</th>
+            <th>{t("tasks.completedAt")}</th>
+            <th>{t("tasks.resultSummary")}</th>
           </tr>
         </thead>
         <tbody>

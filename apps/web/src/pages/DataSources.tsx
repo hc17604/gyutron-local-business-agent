@@ -1,5 +1,6 @@
 import { FolderPlus, PlugZap, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { createConnector, getConnectors, syncConnector, testConnector } from "../api/client";
 import { EmptyState } from "../components/common/EmptyState";
@@ -11,6 +12,7 @@ import type { ConnectorCatalogItem, DataConnector } from "../types/api";
 const defaultFolder = "D:\\Codex\\gyutron-local-business-agent\\data\\imports";
 
 export function DataSources() {
+  const { t } = useTranslation();
   const [catalog, setCatalog] = useState<ConnectorCatalogItem[]>([]);
   const [connectors, setConnectors] = useState<DataConnector[]>([]);
   const [folderPath, setFolderPath] = useState(defaultFolder);
@@ -34,7 +36,7 @@ export function DataSources() {
       config_json: { folder_path: folderPath, data_type: "order", platform_label: "Local folder", scan_interval: "manual" },
     });
     setConnectors((current) => [connector, ...current]);
-    setMessage("Local Folder connector created.");
+    setMessage(t("dataSources.connectorCreated"));
   }
 
   async function handleTest(id: number) {
@@ -54,18 +56,18 @@ export function DataSources() {
         actions={
           <button className="button primary" onClick={handleAddLocalFolder} type="button">
             <FolderPlus size={16} />
-            Add Local Folder
+            {t("dataSources.addLocalFolder")}
           </button>
         }
-        description="Manage local-first data connectors. Platform connectors are placeholders until real API integrations are intentionally added."
-        eyebrow="Connector center"
-        title="Data sources"
+        description={t("dataSources.description")}
+        eyebrow={t("dataSources.eyebrow")}
+        title={t("dataSources.title")}
       />
 
       <section className="panel">
-        <SectionHeader title="Create local folder connector" description="Use a watched local folder for Alibaba, ERP, Shopee, Amazon, or Shopify exports." meta="Local only" />
+        <SectionHeader title={t("dataSources.createLocalFolder")} description={t("dataSources.createLocalFolderDescription")} meta={t("dataSources.localOnly")} />
         <label>
-          Folder path
+          {t("dataSources.folderPath")}
           <input onChange={(event) => setFolderPath(event.target.value)} value={folderPath} />
         </label>
         {message ? <div className="inline-info">{message}</div> : null}
@@ -76,23 +78,23 @@ export function DataSources() {
           <article className="source-card" key={source.connector_id}>
             <strong>{source.name}</strong>
             <p className="muted">{source.description}</p>
-            <StatusBadge label={source.status === "available" ? "Available" : "Mock / Coming soon"} tone={source.status === "available" ? "success" : "neutral"} />
+            <StatusBadge label={source.status === "available" ? t("dataSources.available") : t("dataSources.mockComingSoon")} tone={source.status === "available" ? "success" : "neutral"} />
           </article>
         ))}
       </section>
 
       <section className="panel">
-        <SectionHeader title="Configured connectors" description="Sync jobs and imported file records are stored in the local SQLite database." />
+        <SectionHeader title={t("dataSources.configuredConnectors")} description={t("dataSources.configuredConnectorsDescription")} />
         {connectors.length ? <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Last sync</th>
-                <th>Last result</th>
-                <th>Actions</th>
+                <th>{t("dataSources.name")}</th>
+                <th>{t("dataSources.type")}</th>
+                <th>{t("common.status")}</th>
+                <th>{t("dataSources.lastSync")}</th>
+                <th>{t("dataSources.lastResult")}</th>
+                <th>{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -109,11 +111,11 @@ export function DataSources() {
                     <div className="table-actions">
                       <button className="table-action" onClick={() => void handleTest(connector.id)} type="button">
                         <PlugZap size={14} />
-                        Test
+                        {t("common.test")}
                       </button>
                       <button className="table-action" onClick={() => void handleSync(connector.id)} type="button">
                         <RefreshCw size={14} />
-                        Sync
+                        {t("common.sync")}
                       </button>
                     </div>
                   </td>
@@ -121,7 +123,7 @@ export function DataSources() {
               ))}
             </tbody>
           </table>
-        </div> : <EmptyState title="No connectors configured" description="Create a Local Folder connector to import the first Excel or CSV export." />}
+        </div> : <EmptyState title={t("dataSources.noConnectors")} description={t("dataSources.noConnectorsDescription")} />}
       </section>
     </div>
   );

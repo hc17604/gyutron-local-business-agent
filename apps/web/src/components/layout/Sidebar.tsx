@@ -59,7 +59,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="brand">
-        <div className="brand-mark">GT</div>
+        <img alt="GyuTron" className="brand-mark" src="/gyutron-logo.ico" />
         <div>
           <strong>GyuTron</strong>
           <span>{t("brand.localAgent")}</span>

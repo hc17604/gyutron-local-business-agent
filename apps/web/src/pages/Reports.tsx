@@ -10,6 +10,7 @@ import { SectionHeader } from "../components/common/SectionHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
 import { ReportViewer } from "../components/reports/ReportViewer";
 import { reports as mockReports } from "../data/mockDashboard";
+import { formatReportType, formatStatus } from "../i18n/formatters";
 import type { LocalReport } from "../types/api";
 
 export function Reports() {
@@ -55,21 +56,21 @@ export function Reports() {
               ? reports.map((report) => (
                   <article className="record-card" key={report.id}>
                     <div>
-                      <strong>{report.title}</strong>
+                      <strong>{report.title === "Owner Daily Report" ? t("reports.ownerDailyReport") : report.title}</strong>
                       <span>{t("reports.scheduledAutomation")} / {report.created_at}</span>
                     </div>
-                    <StatusBadge label={report.status} tone={report.status === "ready" ? "success" : "warning"} />
+                    <StatusBadge label={formatStatus(report.status, t)} tone={report.status === "ready" ? "success" : "warning"} />
                   </article>
                 ))
               : mockReports.map((report) => (
-                  <article className="record-card" key={report.title}>
+                  <article className="record-card" key={report.titleKey}>
                     <div>
-                      <strong>{report.title}</strong>
+                      <strong>{t(report.titleKey)}</strong>
                       <span>
-                        {report.type} / {report.sourceFiles} / {report.createdAt}
+                        {formatReportType(report.type, t)} / {report.sourceFiles} / {report.createdAt}
                       </span>
                     </div>
-                    <StatusBadge label={report.status} tone={report.status === "Ready" ? "success" : "warning"} />
+                    <StatusBadge label={formatStatus(report.status, t)} tone={report.status === "ready" ? "success" : "warning"} />
                   </article>
                 ))}
           </div>
@@ -78,7 +79,7 @@ export function Reports() {
           <article className="report-viewer">
             <div className="report-header-block">
               <p className="eyebrow">{t("reports.ownerReport")}</p>
-              <h2>{reports[0].title}</h2>
+              <h2>{reports[0].title === "Owner Daily Report" ? t("reports.ownerDailyReport") : reports[0].title}</h2>
               <span>{t("reports.generatedLocally")} / {reports[0].created_at} / {t("reports.language")}: {getCurrentLanguage()}</span>
             </div>
             <div className="report-section-card">

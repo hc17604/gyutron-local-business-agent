@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { tasks } from "../../data/mockDashboard";
+import { formatAutomationType, formatStatus } from "../../i18n/formatters";
 import { StatusBadge } from "../common/StatusBadge";
 
 export function TaskTable() {
@@ -21,15 +22,15 @@ export function TaskTable() {
         </thead>
         <tbody>
           {tasks.map((task) => (
-            <tr key={task.title}>
-              <td>{task.title}</td>
-              <td>{task.mode}</td>
+            <tr key={task.titleKey}>
+              <td>{t(task.titleKey)}</td>
+              <td>{formatAutomationType(task.mode, t)}</td>
               <td>
-                <StatusBadge label={task.status} tone={task.status === "Completed" ? "success" : task.status === "Running" ? "info" : "warning"} />
+                <StatusBadge label={formatStatus(task.status, t)} tone={task.status === "completed" ? "success" : task.status === "running" ? "info" : "warning"} />
               </td>
               <td>{task.createdAt}</td>
               <td>{task.completedAt}</td>
-              <td>{task.result}</td>
+              <td>{t(task.resultKey)}</td>
             </tr>
           ))}
         </tbody>

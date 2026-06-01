@@ -1,31 +1,35 @@
+import { useTranslation } from "react-i18next";
+
 import { PageHeader } from "../components/common/PageHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
 
 export function SystemSettings() {
+  const { t } = useTranslation();
+
   return (
     <div className="page-stack">
       <PageHeader
-        description="Local deployment settings for data storage, runtime mode, and future workspace options."
-        eyebrow="Local runtime"
-        title="System Settings"
+        description={t("systemSettings.description")}
+        eyebrow={t("systemSettings.eyebrow")}
+        title={t("systemSettings.title")}
       />
       <section className="settings-grid">
         <article className="panel">
           <div className="panel-heading">
-            <h2>Runtime</h2>
-            <StatusBadge label="Local Mode" tone="success" />
+            <h2>{t("systemSettings.runtime")}</h2>
+            <StatusBadge label={t("header.localMode")} tone="success" />
           </div>
           <div className="settings-list">
             <div>
-              <span>Data directory</span>
+              <span>{t("systemSettings.dataDirectory")}</span>
               <strong>data/</strong>
             </div>
             <div>
-              <span>Uploads</span>
+              <span>{t("systemSettings.uploads")}</span>
               <strong>data/uploads</strong>
             </div>
             <div>
-              <span>Reports</span>
+              <span>{t("systemSettings.reports")}</span>
               <strong>data/reports</strong>
             </div>
             <div>
@@ -36,10 +40,10 @@ export function SystemSettings() {
         </article>
         <article className="panel">
           <div className="panel-heading">
-            <h2>Security posture</h2>
+            <h2>{t("systemSettings.securityPosture")}</h2>
           </div>
           <p className="muted">
-            First version is read-only: no platform writes, no automatic emails, no payment features, and no multi-tenant SaaS behavior.
+            {t("systemSettings.securityPostureDescription")}
           </p>
         </article>
       </section>

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { PageHeader } from "../components/common/PageHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
 import { businessRules } from "../data/mockDashboard";
+import { formatDataType, formatStatus } from "../i18n/formatters";
 
 export function BusinessRules() {
   const { t } = useTranslation();
@@ -33,12 +34,12 @@ export function BusinessRules() {
             </thead>
             <tbody>
               {businessRules.map((rule) => (
-                <tr key={rule.title}>
-                  <td>{rule.title}</td>
-                  <td>{rule.category}</td>
-                  <td>{rule.description}</td>
+                <tr key={rule.titleKey}>
+                  <td>{t(rule.titleKey)}</td>
+                  <td>{formatDataType(rule.category, t)}</td>
+                  <td>{t(rule.descriptionKey)}</td>
                   <td>
-                    <StatusBadge label={rule.status} tone={rule.status === "Active" ? "success" : "neutral"} />
+                    <StatusBadge label={formatStatus(rule.status, t)} tone={rule.status === "active" ? "success" : "neutral"} />
                   </td>
                 </tr>
               ))}

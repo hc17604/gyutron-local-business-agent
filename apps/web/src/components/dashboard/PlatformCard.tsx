@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 import type { PlatformPerformance } from "../../types";
 import { StatusBadge } from "../common/StatusBadge";
 
@@ -6,6 +8,8 @@ interface PlatformCardProps {
 }
 
 export function PlatformCard({ platform }: PlatformCardProps) {
+  const { t } = useTranslation();
+
   return (
     <article className="platform-card">
       <div className="card-row">
@@ -13,13 +17,13 @@ export function PlatformCard({ platform }: PlatformCardProps) {
         <StatusBadge label={platform.trend} tone={platform.tone} />
       </div>
       <div className="platform-grid">
-        <span>Revenue</span>
+        <span>{t("dashboard.revenue")}</span>
         <strong>{platform.revenue}</strong>
-        <span>Orders</span>
+        <span>{t("dashboard.orders")}</span>
         <strong>{platform.orders}</strong>
-        <span>Inquiries</span>
+        <span>{t("dashboard.inquiries")}</span>
         <strong>{platform.inquiries}</strong>
-        <span>Conversion</span>
+        <span>{t("dashboard.conversionRate")}</span>
         <strong>{platform.conversion}</strong>
       </div>
     </article>

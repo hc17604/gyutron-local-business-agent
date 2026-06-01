@@ -111,6 +111,7 @@ The web app uses `react-i18next` with one shared React UI and language packs. Do
 - Add new English copy to `en.json`, then add the matching Simplified Chinese copy to `zh-CN.json`.
 - New UI text should use `useTranslation()` and `t("module.key")`; do not hardcode fixed UI copy in page components.
 - Reports and Agent Chat requests send the current UI language to the backend so generated content can match the selected language.
+- Run `npm.cmd run check:i18n` from `apps/web` to scan for obvious hardcoded English UI strings before committing frontend pages.
 
 ## Local Data
 

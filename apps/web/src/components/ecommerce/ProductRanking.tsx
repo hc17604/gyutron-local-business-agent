@@ -5,6 +5,12 @@ import { StatusBadge } from "../common/StatusBadge";
 
 export function ProductRanking() {
   const { t } = useTranslation();
+  const statusKeyByLabel: Record<string, string> = {
+    "Stock risk": "dashboard.stockRisk",
+    Growth: "dashboard.growth",
+    Stable: "dashboard.stable",
+    "Low margin": "dashboard.lowMargin",
+  };
 
   return (
     <div className="table-wrap">
@@ -24,7 +30,7 @@ export function ProductRanking() {
               <td>{row.revenue}</td>
               <td>{row.margin}</td>
               <td>
-                <StatusBadge label={row.status} tone={row.status.includes("risk") || row.status.includes("Low") ? "warning" : "success"} />
+                <StatusBadge label={t(statusKeyByLabel[row.status] ?? row.status)} tone={row.status.includes("risk") || row.status.includes("Low") ? "warning" : "success"} />
               </td>
             </tr>
           ))}

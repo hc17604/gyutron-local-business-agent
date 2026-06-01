@@ -30,7 +30,7 @@ export function Header({ title, onNavigate }: HeaderProps) {
       <div className="header-actions">
         <span className="header-pill success"><HardDrive size={14} />{t("header.localMode")}</span>
         <span className={health ? "header-pill info" : "header-pill warning"}><Activity size={14} />{health ? t("header.apiReady") : t("header.apiOffline")}</span>
-        <span className="last-sync">{t("header.updatedAt")}</span>
+        <span className="last-sync">{t("header.updatedAt", { time: "09:42" })}</span>
         <button className="button secondary" onClick={() => onNavigate("sources")} type="button">
           <Upload size={16} />
           {t("header.uploadData")}
@@ -39,7 +39,7 @@ export function Header({ title, onNavigate }: HeaderProps) {
           <DatabaseZap size={16} />
           {t("header.generateReport")}
         </button>
-        <button aria-label={t("common.refresh")} className="icon-button" type="button">
+        <button aria-label={t("header.refresh")} className="icon-button" type="button">
           <RefreshCw size={16} />
         </button>
       </div>

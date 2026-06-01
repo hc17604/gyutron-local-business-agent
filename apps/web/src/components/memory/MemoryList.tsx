@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { memories } from "../../data/mockDashboard";
+import { formatDataType, formatStatus } from "../../i18n/formatters";
 import { StatusBadge } from "../common/StatusBadge";
 
 export function MemoryList() {
@@ -9,10 +10,10 @@ export function MemoryList() {
   return (
     <div className="list-stack">
       {memories.map((memory) => (
-        <article className="memory-card" key={memory.title}>
+        <article className="memory-card" key={memory.titleKey}>
           <div>
-            <strong>{memory.title}</strong>
-            <p>{memory.preview}</p>
+            <strong>{t(memory.titleKey)}</strong>
+            <p>{t(memory.previewKey)}</p>
             <div className="tag-row">
               {memory.tags.map((tag) => (
                 <span key={tag}>{tag}</span>
@@ -20,9 +21,9 @@ export function MemoryList() {
             </div>
           </div>
           <div className="memory-meta">
-            <span>{memory.type}</span>
+            <span>{formatDataType(memory.type, t)}</span>
             <span>{memory.createdAt}</span>
-            <StatusBadge label={memory.status === "Active" ? t("common.active") : memory.status} tone={memory.status === "Active" ? "success" : "neutral"} />
+            <StatusBadge label={formatStatus(memory.status, t)} tone={memory.status === "active" ? "success" : "neutral"} />
           </div>
         </article>
       ))}

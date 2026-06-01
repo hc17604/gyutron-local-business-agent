@@ -79,7 +79,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         ))}
       </div>
 
-      <nav className="sidebar-nav" aria-label="Main navigation">
+      <nav className="sidebar-nav" aria-label={t("nav.overview")}>
         {navItems.map((item) => {
           const Icon = item.icon;
           return (

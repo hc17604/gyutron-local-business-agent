@@ -1,10 +1,16 @@
 import { useTranslation } from "react-i18next";
 
 import { leadRows } from "../../data/mockDashboard";
+import { formatCountry } from "../../i18n/formatters";
 import { StatusBadge } from "../common/StatusBadge";
 
 export function LeadTable() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const statusKeyByLabel: Record<string, string> = {
+    Overdue: "dashboard.overdue",
+    "Pending quote": "dashboard.pendingQuote",
+    Negotiating: "dashboard.negotiating",
+  };
 
   return (
     <div className="table-wrap">
@@ -23,12 +29,12 @@ export function LeadTable() {
           {leadRows.map((row) => (
             <tr key={row.customer}>
               <td>{row.customer}</td>
-              <td>{row.country}</td>
+              <td>{formatCountry(row.country, i18n.language)}</td>
               <td>{row.product}</td>
               <td>{row.value}</td>
               <td>{row.owner}</td>
               <td>
-                <StatusBadge label={row.status} tone={row.status === "Overdue" ? "risk" : "info"} />
+                <StatusBadge label={t(statusKeyByLabel[row.status] ?? row.status)} tone={row.status === "Overdue" ? "risk" : "info"} />
               </td>
             </tr>
           ))}

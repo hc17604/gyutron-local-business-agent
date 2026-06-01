@@ -7,6 +7,7 @@ import { EmptyState } from "../components/common/EmptyState";
 import { PageHeader } from "../components/common/PageHeader";
 import { SectionHeader } from "../components/common/SectionHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
+import { formatConnectorType, formatStatus } from "../i18n/formatters";
 import type { ConnectorCatalogItem, DataConnector } from "../types/api";
 
 const defaultFolder = "D:\\Codex\\gyutron-local-business-agent\\data\\imports";
@@ -76,7 +77,7 @@ export function DataSources() {
       <section className="source-grid">
         {catalog.map((source) => (
           <article className="source-card" key={source.connector_id}>
-            <strong>{source.name}</strong>
+            <strong>{formatConnectorType(source.connector_id, t)}</strong>
             <p className="muted">{source.description}</p>
             <StatusBadge label={source.status === "available" ? t("dataSources.available") : t("dataSources.mockComingSoon")} tone={source.status === "available" ? "success" : "neutral"} />
           </article>
@@ -101,9 +102,9 @@ export function DataSources() {
               {connectors.map((connector) => (
                 <tr key={connector.id}>
                   <td>{connector.name}</td>
-                  <td>{connector.connector_type}</td>
+                  <td>{formatConnectorType(connector.connector_type, t)}</td>
                   <td>
-                    <StatusBadge label={connector.status} tone={connector.status === "active" ? "success" : "warning"} />
+                    <StatusBadge label={formatStatus(connector.status, t)} tone={connector.status === "active" ? "success" : "warning"} />
                   </td>
                   <td>{connector.last_sync_at ?? "-"}</td>
                   <td>{connector.last_sync_status ?? "-"}</td>

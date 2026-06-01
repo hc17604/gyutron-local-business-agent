@@ -1011,6 +1011,28 @@ label select {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
+.tool-list span {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px 9px;
+  font-family: inherit;
+}
+
+.tool-list span svg {
+  display: none;
+}
+
+.tool-list strong {
+  font-size: 12px;
+}
+
+.tool-list small {
+  color: #64748b;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 10px;
+}
+
 .source-grid {
   grid-template-columns: repeat(9, minmax(120px, 1fr));
 }

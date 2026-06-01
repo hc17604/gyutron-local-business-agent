@@ -12,15 +12,6 @@ import { metrics } from "../data/mockDashboard";
 const filterKeys = ["dashboard.today", "dashboard.sevenDays", "dashboard.thirtyDays", "dashboard.custom"];
 const platforms = ["dashboard.allPlatforms", "Alibaba", "Shopee", "Amazon", "TikTok Shop", "Shopify", "ERP"];
 
-const metricKeyByLabel: Record<string, string> = {
-  "Total Revenue": "dashboard.totalRevenue",
-  "Total Orders": "dashboard.totalOrders",
-  "New Inquiries": "dashboard.newInquiries",
-  "High Priority Leads": "dashboard.highPriorityLeads",
-  "Pending Follow-ups": "dashboard.pendingFollowups",
-  "Risk Alerts": "dashboard.riskAlerts",
-};
-
 export function EcommerceDashboard() {
   const { t } = useTranslation();
 
@@ -49,8 +40,8 @@ export function EcommerceDashboard() {
 
       <section className="metric-grid compact">
         {metrics.slice(0, 6).map((metric) => (
-          <article className="mini-metric" key={metric.label}>
-            <span>{t(metricKeyByLabel[metric.label] ?? metric.label)}</span>
+          <article className="mini-metric" key={metric.labelKey}>
+            <span>{t(metric.labelKey)}</span>
             <strong>{metric.value}</strong>
           </article>
         ))}

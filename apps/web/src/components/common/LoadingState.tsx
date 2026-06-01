@@ -1,3 +1,6 @@
+import { useTranslation } from "react-i18next";
+
 export function LoadingState() {
-  return <div className="loading-state">Loading local workspace...</div>;
+  const { t } = useTranslation();
+  return <div className="loading-state">{t("common.loading")}...</div>;
 }

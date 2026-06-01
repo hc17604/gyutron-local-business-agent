@@ -28,9 +28,11 @@ export interface NavigationItem {
 }
 
 export interface Metric {
-  label: string;
+  labelKey: string;
   value: string;
   delta: string;
+  deltaKey?: string;
+  deltaParams?: Record<string, string | number>;
   tone: StatusTone;
 }
 
@@ -45,16 +47,17 @@ export interface PlatformPerformance {
 }
 
 export interface AlertItem {
-  title: string;
-  summary: string;
-  severity: "Low" | "Medium" | "High";
+  titleKey: string;
+  summaryKey: string;
+  summaryParams?: Record<string, string | number>;
+  severity: "low" | "medium" | "high";
 }
 
 export interface ActionItem {
-  title: string;
-  owner: string;
-  due: string;
-  priority: "Normal" | "High";
+  titleKey: string;
+  ownerKey: string;
+  dueKey: string;
+  priority: "normal" | "high";
 }
 
 export interface AgentMessage {
@@ -70,40 +73,40 @@ export interface DataSourceRecord {
   platform: string;
   rows: number;
   uploadedAt: string;
-  mappingStatus: "Mapped" | "Needs review" | "Coming soon";
+  mappingStatus: "mapped" | "needs_review" | "coming_soon";
 }
 
 export interface ReportRecord {
-  title: string;
+  titleKey: string;
   type: string;
   sourceFiles: string;
   createdAt: string;
-  status: "Ready" | "Draft" | "Failed";
+  status: "ready" | "draft" | "failed";
 }
 
 export interface TaskRecord {
-  title: string;
+  titleKey: string;
   mode: string;
-  status: "Pending" | "Running" | "Completed" | "Failed" | "Cancelled";
+  status: "pending" | "running" | "completed" | "failed" | "cancelled";
   createdAt: string;
   completedAt: string;
-  result: string;
+  resultKey: string;
 }
 
 export interface MemoryRecord {
-  title: string;
+  titleKey: string;
   type: string;
   tags: string[];
-  preview: string;
+  previewKey: string;
   createdAt: string;
-  status: "Active" | "Disabled";
+  status: "active" | "disabled";
 }
 
 export interface BusinessRuleRecord {
-  title: string;
+  titleKey: string;
   category: string;
-  description: string;
-  status: "Active" | "Disabled";
+  descriptionKey: string;
+  status: "active" | "disabled";
 }
 
 export interface AuditLogRecord {
@@ -111,6 +114,6 @@ export interface AuditLogRecord {
   actor: string;
   action: string;
   target: string;
-  risk: "Low" | "Medium" | "High";
+  risk: "low" | "medium" | "high";
   summary: string;
 }

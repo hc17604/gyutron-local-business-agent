@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { activateLicense, getLicense } from "../api/client";
 import { PageHeader } from "../components/common/PageHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
+import { formatStatus } from "../i18n/formatters";
 import type { LicenseInfo } from "../types/api";
 
 export function License() {
+  const { t } = useTranslation();
   const [license, setLicense] = useState<LicenseInfo>();
   const [key, setKey] = useState("GYUTRON-DEMO-LICENSE");
 
@@ -23,19 +26,19 @@ export function License() {
 
   return (
     <div className="page-stack">
-      <PageHeader title="License" eyebrow="Local commercial controls" description="Local trial and license structure for future commercial delivery." />
+      <PageHeader title={t("license.title")} eyebrow={t("license.eyebrow")} description={t("license.description")} />
       <section className="settings-grid">
         <article className="panel">
-          <div className="panel-heading"><h2>Current license</h2><StatusBadge label={license?.status ?? "trial"} tone="info" /></div>
+          <div className="panel-heading"><h2>{t("license.currentLicense")}</h2><StatusBadge label={formatStatus(license?.status ?? "trial", t)} tone="info" /></div>
           <div className="settings-list">
-            <div><span>Plan</span><strong>{license?.plan ?? "trial"}</strong></div>
-            <div><span>Expires</span><strong>{license?.expires_at ?? "-"}</strong></div>
-            <div><span>Max users</span><strong>{license?.max_users ?? "-"}</strong></div>
+            <div><span>{t("license.plan")}</span><strong>{license?.plan ?? "trial"}</strong></div>
+            <div><span>{t("license.expires")}</span><strong>{license?.expires_at ?? "-"}</strong></div>
+            <div><span>{t("license.maxUsers")}</span><strong>{license?.max_users ?? "-"}</strong></div>
           </div>
         </article>
         <article className="panel">
-          <label>License key<input value={key} onChange={(event) => setKey(event.target.value)} /></label>
-          <button className="button primary" onClick={activate} type="button">Activate Locally</button>
+          <label>{t("license.licenseKey")}<input value={key} onChange={(event) => setKey(event.target.value)} /></label>
+          <button className="button primary" onClick={activate} type="button">{t("license.activateLocally")}</button>
         </article>
       </section>
     </div>

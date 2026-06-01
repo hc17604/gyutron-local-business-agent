@@ -1,5 +1,7 @@
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
+import { formatStatus } from "../../i18n/formatters";
 import type { ActionItem } from "../../types";
 import { StatusBadge } from "../common/StatusBadge";
 
@@ -8,18 +10,20 @@ interface ActionListProps {
 }
 
 export function ActionList({ actions }: ActionListProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="list-stack">
       {actions.map((action) => (
-        <article className="list-item" key={action.title}>
+        <article className="list-item" key={action.titleKey}>
           <ArrowRight size={18} />
           <div>
-            <strong>{action.title}</strong>
+            <strong>{t(action.titleKey)}</strong>
             <span>
-              {action.owner} · {action.due}
+              {t(action.ownerKey)} / {t(action.dueKey)}
             </span>
           </div>
-          <StatusBadge label={action.priority} tone={action.priority === "High" ? "risk" : "neutral"} />
+          <StatusBadge label={formatStatus(action.priority, t)} tone={action.priority === "high" ? "risk" : "neutral"} />
         </article>
       ))}
     </div>

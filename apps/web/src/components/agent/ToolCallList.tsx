@@ -1,4 +1,7 @@
 import { Wrench } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+import { formatToolName } from "../../i18n/formatters";
 
 const defaultTools = [
   "llm.chat",
@@ -18,12 +21,15 @@ const defaultTools = [
 ];
 
 export function ToolCallList({ tools = defaultTools }: { tools?: string[] }) {
+  const { t } = useTranslation();
+
   return (
     <div className="tool-list">
       {tools.map((tool) => (
         <span key={tool}>
           <Wrench size={14} />
-          {tool}
+          <strong>{formatToolName(tool, t)}</strong>
+          <small>{tool}</small>
         </span>
       ))}
     </div>

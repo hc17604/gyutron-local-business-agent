@@ -9,15 +9,19 @@ export function RevenueChart() {
         <AreaChart data={revenueTrend}>
           <defs>
             <linearGradient id="revenueFill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.28} />
-              <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
+              <stop offset="5%" stopColor="#6f2dbd" stopOpacity={0.28} />
+              <stop offset="95%" stopColor="#6f2dbd" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#eef2f7" vertical={false} />
+          <CartesianGrid vertical={false} />
           <XAxis dataKey="day" tickLine={false} />
           <YAxis tickLine={false} width={58} />
-          <Tooltip />
-          <Area dataKey="revenue" fill="url(#revenueFill)" stroke="#4f46e5" strokeWidth={2} type="monotone" />
+          <Tooltip
+            contentStyle={{ background: "#ffffff", border: "1px solid #e6e0ee", borderRadius: 2, boxShadow: "0 18px 46px rgba(31,11,53,0.16)" }}
+            itemStyle={{ color: "#302b3a" }}
+            labelStyle={{ color: "#6f687a" }}
+          />
+          <Area dataKey="revenue" fill="url(#revenueFill)" stroke="#6f2dbd" strokeWidth={2} type="monotone" />
         </AreaChart>
       </ResponsiveContainer>
     </div>

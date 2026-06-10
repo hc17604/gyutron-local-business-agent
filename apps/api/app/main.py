@@ -11,6 +11,7 @@ from app.routers.audit import router as audit_router
 from app.routers.auth import router as auth_router
 from app.routers.automations import router as automations_router
 from app.routers.backups import router as backups_router
+from app.routers.commerce import router as commerce_router
 from app.routers.connectors import router as connectors_router
 from app.routers.demo import router as demo_router
 from app.routers.health import router as health_router
@@ -66,6 +67,7 @@ app.include_router(alerts_router)
 app.include_router(reports_router)
 app.include_router(tasks_router)
 app.include_router(rules_router)
+app.include_router(commerce_router)
 app.include_router(overview_router)
 app.include_router(security_router)
 app.include_router(backups_router)

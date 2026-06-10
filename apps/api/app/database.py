@@ -213,6 +213,179 @@ CREATE TABLE IF NOT EXISTS rule_triggers (
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ============================ Phase 4: commerce ============================ --
+-- Registry of every data source feeding the workspace (website API, shop
+-- behavior events, CSV commerce imports, future SaaS). Source filters in
+-- reports/tasks/dashboard key off THIS table, not ad-hoc strings.
+CREATE TABLE IF NOT EXISTS data_sources (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source_key TEXT NOT NULL UNIQUE,
+  display_name TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  connector_id INTEGER,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Unified commerce model. Every table: (source, external_id) unique, SANITIZED
+-- raw_payload (see services/commerce_sanitize.py), schema_version, base-currency
+-- triple, canonical status + raw_status, UTC source timestamps. GDPR path:
+-- cascade delete by (source, external_id).
+CREATE TABLE IF NOT EXISTS orders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  order_number TEXT,
+  customer_external_id TEXT,
+  customer_email TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  raw_status TEXT,
+  total_amount REAL,
+  currency TEXT,
+  amount_base REAL,
+  item_count INTEGER,
+  country TEXT,
+  created_at_source TEXT,
+  raw_payload TEXT NOT NULL DEFAULT '{}',
+  schema_version INTEGER NOT NULL DEFAULT 1,
+  synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source, external_id)
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  order_external_id TEXT,
+  product_external_id TEXT,
+  sku TEXT,
+  title TEXT,
+  quantity INTEGER,
+  unit_amount REAL,
+  currency TEXT,
+  amount_base REAL,
+  raw_payload TEXT NOT NULL DEFAULT '{}',
+  schema_version INTEGER NOT NULL DEFAULT 1,
+  synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source, external_id)
+);
+
+CREATE TABLE IF NOT EXISTS customers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  email TEXT,
+  name TEXT,
+  company TEXT,
+  country TEXT,
+  first_seen_at TEXT,
+  last_seen_at TEXT,
+  raw_payload TEXT NOT NULL DEFAULT '{}',
+  schema_version INTEGER NOT NULL DEFAULT 1,
+  synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source, external_id)
+);
+
+CREATE TABLE IF NOT EXISTS commerce_products (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  sku TEXT,
+  title TEXT,
+  category TEXT,
+  price_amount REAL,
+  currency TEXT,
+  amount_base REAL,
+  status TEXT,
+  raw_payload TEXT NOT NULL DEFAULT '{}',
+  schema_version INTEGER NOT NULL DEFAULT 1,
+  synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source, external_id)
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  order_ref TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  raw_status TEXT,
+  amount REAL,
+  currency TEXT,
+  amount_base REAL,
+  method TEXT,
+  created_at_source TEXT,
+  raw_payload TEXT NOT NULL DEFAULT '{}',
+  schema_version INTEGER NOT NULL DEFAULT 1,
+  synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source, external_id)
+);
+
+CREATE TABLE IF NOT EXISTS shipments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  order_ref TEXT,
+  status TEXT,
+  raw_status TEXT,
+  carrier TEXT,
+  tracking_ref TEXT,
+  country TEXT,
+  created_at_source TEXT,
+  raw_payload TEXT NOT NULL DEFAULT '{}',
+  schema_version INTEGER NOT NULL DEFAULT 1,
+  synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source, external_id)
+);
+
+-- Shop BEHAVIOR events (product.viewed / cart.added / quote.requested) — this is
+-- a behavior-events feed, NOT an order connector. Anonymous by design: no IP,
+-- no fingerprint, no session id, no PII.
+CREATE TABLE IF NOT EXISTS cart_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  product_handle TEXT,
+  locale TEXT,
+  occurred_at TEXT,
+  raw_payload TEXT NOT NULL DEFAULT '{}',
+  schema_version INTEGER NOT NULL DEFAULT 1,
+  synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source, external_id)
+);
+
+-- Placeholders (schema only in Phase 4).
+CREATE TABLE IF NOT EXISTS refunds (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  order_ref TEXT,
+  status TEXT,
+  amount REAL,
+  currency TEXT,
+  amount_base REAL,
+  created_at_source TEXT,
+  raw_payload TEXT NOT NULL DEFAULT '{}',
+  schema_version INTEGER NOT NULL DEFAULT 1,
+  synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source, external_id)
+);
+
+CREATE TABLE IF NOT EXISTS inventory_snapshots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  sku TEXT,
+  quantity INTEGER,
+  snapshot_at TEXT,
+  raw_payload TEXT NOT NULL DEFAULT '{}',
+  schema_version INTEGER NOT NULL DEFAULT 1,
+  synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(source, external_id)
+);
+
 CREATE TABLE IF NOT EXISTS automation_rules (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,

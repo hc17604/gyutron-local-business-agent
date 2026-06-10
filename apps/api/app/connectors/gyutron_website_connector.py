@@ -149,6 +149,7 @@ class GyutronWebsiteConnector(BaseConnector):
             imported += self._upsert_rows(connector_id, source, data_type, rows)
             if data_type == "event":
                 self._apply_status_events(connector_id, rows)
+                self._normalize_shop_events(rows)
             for row in rows:
                 created = row.get("created_at")
                 if created and (max_created is None or created > max_created):
@@ -215,6 +216,40 @@ class GyutronWebsiteConnector(BaseConnector):
                 connection.execute(
                     "UPDATE website_data SET status = ?, synced_at = CURRENT_TIMESTAMP WHERE connector_id = ? AND data_type = ? AND external_id = ?",
                     (new_status, cid, entity_type, entity_id),
+                )
+            connection.commit()
+
+    @staticmethod
+    def _normalize_shop_events(event_rows: list[dict]) -> None:
+        """Shop BEHAVIOR events (product.viewed / cart.added / quote.requested,
+        source=gyutron-shop) also land in the unified commerce `cart_events`
+        table. This is a behavior feed, NOT an order connector — anonymous by
+        design (no IP / session / PII in the payload)."""
+        from app.services.commerce_store import ensure_source, upsert
+
+        shop_events = [
+            e for e in event_rows
+            if (e.get("source") or "") == "gyutron-shop"
+            and (e.get("event_type") or "") in ("product.viewed", "cart.added", "quote.requested")
+        ]
+        if not shop_events:
+            return
+        ensure_source("gyutron-shop", "GYUTRON Shop (behavior events)", "shop-events")
+        with get_connection() as connection:
+            for event in shop_events:
+                payload = event.get("payload") or {}
+                upsert(
+                    connection,
+                    "cart_events",
+                    "gyutron-shop",
+                    event.get("event_id") or "",
+                    {
+                        "event_type": event.get("event_type"),
+                        "product_handle": payload.get("product_handle") or payload.get("product") or None,
+                        "locale": payload.get("locale"),
+                        "occurred_at": event.get("created_at"),
+                    },
+                    payload,
                 )
             connection.commit()
 

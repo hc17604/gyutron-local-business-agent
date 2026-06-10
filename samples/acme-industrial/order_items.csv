@@ -1,0 +1,7 @@
+item_id,order_id,sku,title,quantity,unit_price,currency
+ACME-I-1,ACME-1001,MOCK-CAM-01,Mock Area Camera,2,950.00,USD
+ACME-I-2,ACME-1001,MOCK-LENS-02,Mock Lens Kit,1,550.00,USD
+ACME-I-3,ACME-1002,MOCK-PDA-03,Mock Rugged PDA,1,890.50,EUR
+ACME-I-4,ACME-1003,MOCK-CAM-01,Mock Area Camera,4,950.00,USD
+ACME-I-5,ACME-1003,MOCK-SENS-04,Mock Proximity Sensor,2,660.00,USD
+ACME-I-6,ACME-1004,MOCK-PDA-03,Mock Rugged PDA,2,650.00,USD

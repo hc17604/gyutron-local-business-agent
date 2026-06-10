@@ -1,0 +1,4 @@
+payment_id,order_id,status,amount,currency,method,created_at
+ACME-P-1,ACME-1001,success,2450.00,USD,mock-card,2026-06-01 09:16:00
+ACME-P-2,ACME-1002,success,890.50,EUR,mock-transfer,2026-06-03 14:25:00
+ACME-P-3,ACME-1004,success,1300.00,USD,mock-card,2026-06-09 16:41:00

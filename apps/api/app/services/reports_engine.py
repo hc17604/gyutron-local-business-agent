@@ -110,7 +110,34 @@ def generate_daily_owner_report(language: str = "en", connector_id: int | None =
             out.append(("RFQ 爆量：" if zh else "RFQ surge: ") + f"{s['day']} × {s['count']}")
         for r in flags["repeat_inquirers"]:
             out.append(("高意向（多次询盘）：" if zh else "High intent (repeat inquirer): ") + f"{r['email']} × {r['count']}")
+        for a in flags.get("abandoned_carts", []):
+            out.append(("弃购线索：" if zh else "Abandoned cart: ") + f"{a.get('product_handle') or '?'}")
         return out
+
+    # ---- commerce section (Phase 4 — same report, zero second pipeline) ----
+    from app.services.commerce_metrics import commerce_summary
+
+    com_t = commerce_summary(time_range="today")
+    com_w = commerce_summary(time_range="7d")
+
+    def commerce_block() -> str:
+        if zh:
+            lines = [
+                f"- 今日订单：{com_t['orders']} · 营收（基准币）：{com_t['revenue_base']}",
+                f"- 近 7 天订单：{com_w['orders']} · 营收：{com_w['revenue_base']} · 客单价：{com_w['aov_base']}",
+                f"- 商城行为（近 7 天）：" + (", ".join(f"{k}×{v}" for k, v in com_w["cart_events"].items()) or "无"),
+            ]
+            if com_w["top_products"]:
+                lines.append("- Top 产品：" + ", ".join(f"{k}×{v}" for k, v in list(com_w["top_products"].items())[:5]))
+            return "\n".join(lines)
+        lines = [
+            f"- Orders today: {com_t['orders']} · revenue (base): {com_t['revenue_base']}",
+            f"- Orders 7d: {com_w['orders']} · revenue: {com_w['revenue_base']} · AOV: {com_w['aov_base']}",
+            "- Shop behavior (7d): " + (", ".join(f"{k}×{v}" for k, v in com_w["cart_events"].items()) or "none"),
+        ]
+        if com_w["top_products"]:
+            lines.append("- Top products: " + ", ".join(f"{k}×{v}" for k, v in list(com_w["top_products"].items())[:5]))
+        return "\n".join(lines)
 
     risks = flag_lines()
     risk_block = "\n".join(f"- {r}" for r in risks) if risks else ("- 无" if zh else "- None")
@@ -142,6 +169,10 @@ def generate_daily_owner_report(language: str = "en", connector_id: int | None =
 
 按产品品类：
 {_counter_lines(metrics.count_by(rfq_recent, "product_category", types=("rfq",)), "暂无")}
+
+## Commerce（订单与商城行为）
+
+{commerce_block()}
 
 ## 风险与机会预警
 
@@ -179,6 +210,10 @@ By country:
 
 By product category:
 {_counter_lines(metrics.count_by(rfq_recent, "product_category", types=("rfq",)), "No data")}
+
+## Commerce (orders & shop behavior)
+
+{commerce_block()}
 
 ## Risk & opportunity flags
 

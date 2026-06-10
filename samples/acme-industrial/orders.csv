@@ -1,0 +1,5 @@
+order_id,order_number,customer_id,email,status,total,currency,items,country,created_at
+ACME-1001,#1001,C-01,buyer1@acme-mock.example,paid,2450.00,USD,3,Malaysia,2026-06-01 09:15:00
+ACME-1002,#1002,C-02,buyer2@acme-mock.example,fulfilled,890.50,EUR,1,Germany,2026-06-03 14:20:00
+ACME-1003,#1003,C-01,buyer1@acme-mock.example,pending,5120.00,USD,6,Malaysia,2026-06-08 11:05:00
+ACME-1004,#1004,C-03,buyer3@acme-mock.example,paid,1300.00,USD,2,Vietnam,2026-06-09 16:40:00

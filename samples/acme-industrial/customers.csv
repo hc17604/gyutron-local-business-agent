@@ -1,0 +1,4 @@
+customer_id,email,name,company,country,created_at
+C-01,buyer1@acme-mock.example,Mock Buyer One,ACME Industrial,Malaysia,2026-05-20 08:00:00
+C-02,buyer2@acme-mock.example,Mock Buyer Two,ACME Industrial EU,Germany,2026-05-25 10:30:00
+C-03,buyer3@acme-mock.example,Mock Buyer Three,ACME Industrial VN,Vietnam,2026-06-02 13:45:00

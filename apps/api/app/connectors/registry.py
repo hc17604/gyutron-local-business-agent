@@ -1,4 +1,5 @@
 from app.connectors.base import BaseConnector
+from app.connectors.csv_commerce_connector import CsvCommerceConnector
 from app.connectors.excel_csv_connector import ExcelCsvConnector
 from app.connectors.gyutron_website_connector import GyutronWebsiteConnector
 from app.connectors.local_folder_connector import LocalFolderConnector
@@ -9,6 +10,7 @@ CONNECTORS: dict[str, BaseConnector] = {
     "excel_csv": ExcelCsvConnector(),
     "local_folder": LocalFolderConnector(),
     "gyutron_website": GyutronWebsiteConnector(),
+    "csv_commerce": CsvCommerceConnector(),
     "alibaba": MockAlibabaConnector(),
     "shopee": MockShopeeConnector(),
     "amazon": MockAmazonConnector(),

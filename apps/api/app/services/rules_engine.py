@@ -122,6 +122,38 @@ RULES: list[dict] = [
         "config": {"min_count": 2},
     },
     {
+        "rule_id": "cart_abandonment",
+        "name": {"en": "Cart abandonment lead", "zh": "弃购线索"},
+        "description": {
+            "en": "cart.added with no quote.requested for the same product within the window → daily-report lead entry.",
+            "zh": "加购后时间窗内无询价 → 弃购线索进入日报。",
+        },
+        "kind": "report_flag",
+        "config": {"window_hours": 48},
+    },
+    {
+        "rule_id": "paid_not_fulfilled",
+        "name": {"en": "Paid but not fulfilled", "zh": "已付款未发货"},
+        "description": {
+            "en": "Orders paid for more than N days without fulfilment get a high-priority task.",
+            "zh": "订单已付款超过 N 天未发货，生成高优先级任务。",
+        },
+        "kind": "commerce_task",
+        "task_type": "fulfil_order",
+        "config": {"threshold_days": 7},
+    },
+    {
+        "rule_id": "high_views_no_inquiry",
+        "name": {"en": "High views, no inquiry", "zh": "高浏览零询盘"},
+        "description": {
+            "en": "Shop products viewed many times with no cart/quote signal get an opportunity task.",
+            "zh": "商城产品高浏览但无加购/询价，生成产品机会任务。",
+        },
+        "kind": "commerce_task",
+        "task_type": "product_opportunity_review",
+        "config": {"min_views": 5},
+    },
+    {
         "rule_id": "exclude_internal_tests",
         "name": {"en": "Exclude internal tests", "zh": "排除内部测试"},
         "description": {
@@ -361,6 +393,45 @@ def evaluate_rules(connector_id: int | None = None) -> dict:
                 ):
                     created += 1
 
+        # ---- commerce rules (Phase 4) ----
+        from app.services import commerce_metrics
+
+        enabled, cfg = rule_runtime("paid_not_fulfilled")
+        if enabled:
+            stale = commerce_metrics.paid_not_fulfilled(int(cfg.get("threshold_days", 7)))
+            matching = {f"{o['source']}:{o['external_id']}" for o in stale}
+            for o in stale:
+                if _create_task(
+                    connection,
+                    rule_id="paid_not_fulfilled",
+                    task_type="fulfil_order",
+                    entity_type="order",
+                    entity_id=f"{o['source']}:{o['external_id']}",
+                    title=f"Fulfil order {o.get('order_number') or o['external_id']}",
+                    description=f"{o['source']} — paid {o.get('amount_base') or o.get('total_amount')} ({o.get('currency')}), created {o.get('created_at_source') or '?'}.",
+                    priority="high",
+                    recommendation="Ship or update the order status in the source system; the workspace is read-only.",
+                ):
+                    created += 1
+            auto_closed += _auto_close(connection, "paid_not_fulfilled", matching)
+
+        enabled, cfg = rule_runtime("high_views_no_inquiry")
+        if enabled:
+            hot = commerce_metrics.high_views_no_inquiry(int(cfg.get("min_views", 5)))
+            for handle, views in hot:
+                if _create_task(
+                    connection,
+                    rule_id="high_views_no_inquiry",
+                    task_type="product_opportunity_review",
+                    entity_type="product_handle",
+                    entity_id=handle,
+                    title=f"High views, no inquiry: {handle}",
+                    description=f"{views} shop views with no cart/quote signal.",
+                    priority="medium",
+                    recommendation="Check pricing/content for this product; consider a targeted promotion.",
+                ):
+                    created += 1
+
         connection.commit()
 
     if created:
@@ -401,5 +472,14 @@ def report_flags(connector_id: int | None = None) -> dict:
         records = metrics.load_records(connector_id, time_range="30d")
         flags["repeat_inquirers"] = [
             {"email": email, "count": n} for email, n in metrics.repeat_emails(records, min_count=int(cfg.get("min_count", 2)))
+        ]
+    enabled, cfg = rule_runtime("cart_abandonment")
+    flags["abandoned_carts"] = []
+    if enabled:
+        from app.services import commerce_metrics
+
+        flags["abandoned_carts"] = [
+            {"product_handle": e.get("product_handle"), "occurred_at": e.get("occurred_at")}
+            for e in commerce_metrics.abandoned_carts(int(cfg.get("window_hours", 48)))[:10]
         ]
     return flags

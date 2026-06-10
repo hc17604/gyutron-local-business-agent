@@ -12,6 +12,9 @@ def next_run_at(schedule: str | None, *, now: datetime | None = None) -> str | N
     now = now or datetime.now()
     parts = schedule.split(":")
     try:
+        if parts[0] == "every" and len(parts) == 2:
+            minutes = max(1, int(parts[1]))
+            return (now + timedelta(minutes=minutes)).isoformat(timespec="seconds")
         if parts[0] == "daily" and len(parts) == 3:
             hour, minute = int(parts[1]), int(parts[2])
             candidate = now.replace(hour=hour, minute=minute, second=0, microsecond=0)

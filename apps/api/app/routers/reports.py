@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from app.database import get_connection
 from app.services.auth import require_min_role
 from app.services.reports import generate_owner_report
+from app.services.reports_engine import generate_daily_owner_report, generate_opportunities_report, generate_weekly_pipeline_report
 from app.services.website_leads import generate_website_leads_summary
 
 
@@ -17,6 +18,7 @@ class GenerateReportPayload(BaseModel):
 class WebsiteLeadsPayload(BaseModel):
     connector_id: int | None = None
     language: str | None = "en"
+    time_range: str | None = "all"
 
 
 @router.get("")
@@ -36,4 +38,29 @@ def website_leads_summary_endpoint(payload: WebsiteLeadsPayload | None = None, _
     return generate_website_leads_summary(
         connector_id=(payload.connector_id if payload else None),
         language=((payload.language if payload else None) or "en"),
+        time_range=((payload.time_range if payload else None) or "all"),
+    )
+
+
+@router.post("/daily-owner")
+def daily_owner_endpoint(payload: WebsiteLeadsPayload | None = None, _: dict = Depends(require_min_role("operator"))):
+    return generate_daily_owner_report(
+        language=((payload.language if payload else None) or "en"),
+        connector_id=(payload.connector_id if payload else None),
+    )
+
+
+@router.post("/weekly-pipeline")
+def weekly_pipeline_endpoint(payload: WebsiteLeadsPayload | None = None, _: dict = Depends(require_min_role("operator"))):
+    return generate_weekly_pipeline_report(
+        language=((payload.language if payload else None) or "en"),
+        connector_id=(payload.connector_id if payload else None),
+    )
+
+
+@router.post("/opportunities")
+def opportunities_endpoint(payload: WebsiteLeadsPayload | None = None, _: dict = Depends(require_min_role("operator"))):
+    return generate_opportunities_report(
+        language=((payload.language if payload else None) or "en"),
+        connector_id=(payload.connector_id if payload else None),
     )

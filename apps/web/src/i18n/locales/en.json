@@ -267,7 +267,13 @@
     "noReportsDesc": "Generate your first owner report from local business data.",
     "ownerDailyReportMay31": "Owner Daily Report - May 31",
     "brazilMarketFollowupReview": "Brazil Market Follow-up Review",
-    "weeklyProductOpportunityReport": "Weekly Product Opportunity Report"
+    "weeklyProductOpportunityReport": "Weekly Product Opportunity Report",
+    "dailyOwner": "Daily Owner Report",
+    "weeklyPipeline": "Weekly Pipeline",
+    "leadsSummary": "Leads Summary (30d)",
+    "opportunities": "Opportunities",
+    "copyMarkdown": "Copy Markdown",
+    "copied": "Report copied to clipboard."
   },
   "tasks": {
     "title": "Tasks",
@@ -290,7 +296,18 @@
     "checkOverdueFollowups": "Check overdue follow-ups",
     "dailyReportCreated": "Daily report created with 9 alerts.",
     "rankingInquiries": "Ranking 68 inquiries.",
-    "overdueItemsFound": "12 overdue items found."
+    "overdueItemsFound": "12 overdue items found.",
+    "taskList": "Task list",
+    "evaluateNow": "Run rules now",
+    "evaluateResult": "Rules run: {{created}} task(s) created, {{closed}} auto-closed.",
+    "all": "All",
+    "priority": "Priority",
+    "entity": "Linked entity",
+    "rule": "Rule",
+    "markDone": "Done",
+    "dismiss": "Dismiss",
+    "noTasks": "No tasks",
+    "noTasksDescription": "Sync website data and run the rules to generate follow-up tasks."
   },
   "memory": {
     "title": "Memory",
@@ -319,7 +336,13 @@
     "productPriority": "Product Priority",
     "salesFollowup": "Sales Follow-up",
     "riskWarning": "Risk Warning",
-    "reportingPreference": "Reporting Preference"
+    "reportingPreference": "Reporting Preference",
+    "lastTriggered": "Last triggered",
+    "triggerCount": "Triggered",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable"
   },
   "auditLogs": {
     "title": "Audit Logs",
@@ -409,7 +432,11 @@
     "paused": "paused",
     "draft": "draft",
     "mapped": "mapped",
-    "needs_review": "needs review"
+    "needs_review": "needs review",
+    "open": "Open",
+    "in_progress": "In progress",
+    "done": "Done",
+    "dismissed": "Dismissed"
   },
   "alerts": {
     "title": "Alerts",

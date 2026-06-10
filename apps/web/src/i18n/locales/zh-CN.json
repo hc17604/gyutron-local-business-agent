@@ -267,7 +267,13 @@
     "noReportsDesc": "基于本地业务数据生成第一份老板日报。",
     "ownerDailyReportMay31": "老板日报 - 5 月 31 日",
     "brazilMarketFollowupReview": "巴西市场跟进复盘",
-    "weeklyProductOpportunityReport": "每周产品机会报告"
+    "weeklyProductOpportunityReport": "每周产品机会报告",
+    "dailyOwner": "老板日报",
+    "weeklyPipeline": "周报（管道）",
+    "leadsSummary": "线索摘要（30天）",
+    "opportunities": "机会分析",
+    "copyMarkdown": "复制 Markdown",
+    "copied": "报告已复制到剪贴板。"
   },
   "tasks": {
     "title": "任务",
@@ -290,7 +296,18 @@
     "checkOverdueFollowups": "检查逾期未跟进客户",
     "dailyReportCreated": "已生成包含 9 个提醒的日报。",
     "rankingInquiries": "正在为 68 条询盘排序。",
-    "overdueItemsFound": "发现 12 个逾期事项。"
+    "overdueItemsFound": "发现 12 个逾期事项。",
+    "taskList": "任务列表",
+    "evaluateNow": "立即运行规则",
+    "evaluateResult": "规则已运行：新建 {{created}} 个任务，自动关闭 {{closed}} 个。",
+    "all": "全部",
+    "priority": "优先级",
+    "entity": "关联对象",
+    "rule": "规则",
+    "markDone": "完成",
+    "dismiss": "忽略",
+    "noTasks": "暂无任务",
+    "noTasksDescription": "同步官网数据并运行规则后，将自动生成跟进任务。"
   },
   "memory": {
     "title": "本地记忆",
@@ -319,7 +336,13 @@
     "productPriority": "产品优先级",
     "salesFollowup": "销售跟进",
     "riskWarning": "风险预警",
-    "reportingPreference": "报告偏好"
+    "reportingPreference": "报告偏好",
+    "lastTriggered": "最近触发",
+    "triggerCount": "触发次数",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "enable": "启用",
+    "disable": "禁用"
   },
   "auditLogs": {
     "title": "审计日志",
@@ -409,7 +432,11 @@
     "paused": "已暂停",
     "draft": "草稿",
     "mapped": "已映射",
-    "needs_review": "待复核"
+    "needs_review": "待复核",
+    "open": "待处理",
+    "in_progress": "进行中",
+    "done": "已完成",
+    "dismissed": "已忽略"
   },
   "alerts": {
     "title": "异常提醒",

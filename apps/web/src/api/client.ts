@@ -1,7 +1,9 @@
 import type {
   AgentChatResponse,
   AgentMode,
+  AgentTask,
   AuditLog,
+  BusinessRuleInfo,
   AuthResponse,
   AuthUser,
   AutomationRule,
@@ -200,11 +202,39 @@ export function generateOwnerReport(language?: string): Promise<{ report_id: num
   });
 }
 
-export function generateWebsiteLeadsSummary(payload: { connector_id?: number; language?: string }): Promise<{ report_id: number; title: string; summary: string; language?: string }> {
+export function generateWebsiteLeadsSummary(payload: { connector_id?: number; language?: string; time_range?: string }): Promise<{ report_id: number; title: string; summary: string; language?: string }> {
   return request<{ report_id: number; title: string; summary: string; language?: string }>("/reports/website-leads-summary", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function generateNamedReport(kind: "daily-owner" | "weekly-pipeline" | "opportunities", payload: { language?: string; connector_id?: number }): Promise<{ report_id: number; title: string; summary: string }> {
+  return request<{ report_id: number; title: string; summary: string }>(`/reports/${kind}`, { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function getTasks(filters?: { status?: string; priority?: string }): Promise<{ tasks: AgentTask[]; counts: Record<string, number> }> {
+  const params = new URLSearchParams();
+  if (filters?.status) params.set("status", filters.status);
+  if (filters?.priority) params.set("priority", filters.priority);
+  const qs = params.toString();
+  return request<{ tasks: AgentTask[]; counts: Record<string, number> }>(`/tasks${qs ? `?${qs}` : ""}`);
+}
+
+export function updateTask(taskId: number, status: string): Promise<AgentTask> {
+  return request<AgentTask>(`/tasks/${taskId}`, { method: "PATCH", body: JSON.stringify({ status }) });
+}
+
+export function evaluateRulesNow(): Promise<{ tasks_created: number; tasks_auto_closed: number }> {
+  return request<{ tasks_created: number; tasks_auto_closed: number }>("/tasks/evaluate", { method: "POST" });
+}
+
+export function getBusinessRules(): Promise<{ rules: BusinessRuleInfo[] }> {
+  return request<{ rules: BusinessRuleInfo[] }>("/business-rules");
+}
+
+export function toggleBusinessRule(ruleId: string, enabled: boolean): Promise<{ rule_id: string; enabled: boolean }> {
+  return request<{ rule_id: string; enabled: boolean }>(`/business-rules/${ruleId}/toggle`, { method: "POST", body: JSON.stringify({ enabled }) });
 }
 
 export function getAlerts(): Promise<{ alerts: LocalAlert[] }> {

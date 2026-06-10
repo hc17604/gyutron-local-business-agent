@@ -68,6 +68,19 @@ def execute_action(rule) -> dict:
     if action_type == "generate_report":
         report = generate_owner_report(source="scheduled" if rule["trigger_type"] == "schedule" else "automation", connector_id=action_config.get("connector_id"))
         return {"summary": report["summary"], "report_id": report["report_id"]}
+    if action_type == "generate_daily_owner_report":
+        from app.services.reports_engine import generate_daily_owner_report
+
+        report = generate_daily_owner_report(language=action_config.get("language", "en"), connector_id=action_config.get("connector_id"))
+        return {"summary": report["summary"], "report_id": report["report_id"]}
+    if action_type == "connector_sync":
+        # incremental sync + rules evaluation in one pass (the Phase-3 default automation)
+        from app.services.rules_engine import evaluate_rules
+
+        result = run_connector_sync(int(action_config["connector_id"]))
+        rules = evaluate_rules(int(action_config["connector_id"]))
+        result["summary"] += f" | rules: +{rules['tasks_created']} task(s), {rules['tasks_auto_closed']} auto-closed"
+        return {**result, **rules}
     if action_type == "scan_connector":
         connector_id = int(action_config["connector_id"])
         return run_connector_sync(connector_id)

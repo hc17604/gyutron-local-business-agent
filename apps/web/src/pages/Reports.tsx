@@ -1,46 +1,68 @@
-import { FilePlus2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { CalendarDays, ClipboardCopy, FileBarChart, FilePlus2, TrendingUp } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import { generateOwnerReport, getReports } from "../api/client";
+import { generateNamedReport, generateWebsiteLeadsSummary, getReports } from "../api/client";
 import { getCurrentLanguage } from "../i18n";
 import { PageHeader } from "../components/common/PageHeader";
 import { EmptyState } from "../components/common/EmptyState";
 import { SectionHeader } from "../components/common/SectionHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
-import { ReportViewer } from "../components/reports/ReportViewer";
-import { reports as mockReports } from "../data/mockDashboard";
-import { formatReportType, formatStatus } from "../i18n/formatters";
+import { formatStatus } from "../i18n/formatters";
 import type { LocalReport } from "../types/api";
 
 export function Reports() {
   const { t } = useTranslation();
   const [reports, setReports] = useState<LocalReport[]>([]);
+  const [selected, setSelected] = useState<LocalReport>();
   const [message, setMessage] = useState<string>();
 
   async function refresh() {
     const response = await getReports();
     setReports(response.reports);
+    if (response.reports.length) setSelected((current) => current ?? response.reports[0]);
   }
 
   useEffect(() => {
     refresh().catch(() => undefined);
   }, []);
 
-  async function handleGenerate() {
-    const result = await generateOwnerReport(getCurrentLanguage());
+  async function generate(kind: "daily-owner" | "weekly-pipeline" | "opportunities" | "leads-summary") {
+    const language = getCurrentLanguage();
+    const result =
+      kind === "leads-summary"
+        ? await generateWebsiteLeadsSummary({ language, time_range: "30d" })
+        : await generateNamedReport(kind, { language });
     setMessage(result.summary);
+    setSelected(undefined);
     await refresh();
   }
+
+  async function copyMarkdown() {
+    if (!selected?.content_markdown) return;
+    await navigator.clipboard.writeText(selected.content_markdown);
+    setMessage(t("reports.copied"));
+  }
+
+  const buttons: Array<{ kind: "daily-owner" | "weekly-pipeline" | "opportunities" | "leads-summary"; label: string; icon: ReactNode }> = [
+    { kind: "daily-owner", label: t("reports.dailyOwner"), icon: <FilePlus2 size={16} /> },
+    { kind: "weekly-pipeline", label: t("reports.weeklyPipeline"), icon: <CalendarDays size={16} /> },
+    { kind: "leads-summary", label: t("reports.leadsSummary"), icon: <FileBarChart size={16} /> },
+    { kind: "opportunities", label: t("reports.opportunities"), icon: <TrendingUp size={16} /> },
+  ];
 
   return (
     <div className="page-stack">
       <PageHeader
         actions={
-          <button className="button primary" onClick={handleGenerate} type="button">
-            <FilePlus2 size={16} />
-            {t("reports.generateReport")}
-          </button>
+          <>
+            {buttons.map((b) => (
+              <button className="button primary" key={b.kind} onClick={() => void generate(b.kind).catch((error: Error) => setMessage(error.message))} type="button">
+                {b.icon}
+                {b.label}
+              </button>
+            ))}
+          </>
         }
         description={t("reports.description")}
         eyebrow={t("reports.eyebrow")}
@@ -50,53 +72,46 @@ export function Reports() {
 
       <section className="grid two-columns">
         <article className="panel">
-          <SectionHeader title={t("reports.reportList")} meta={reports.length ? t("reports.localDatabase") : t("reports.demoWorkspace")} />
+          <SectionHeader title={t("reports.reportList")} meta={t("reports.localDatabase")} />
           <div className="list-stack">
-            {reports.length
-              ? reports.map((report) => (
-                  <article className="record-card" key={report.id}>
-                    <div>
-                      <strong>{report.title === "Owner Daily Report" ? t("reports.ownerDailyReport") : report.title}</strong>
-                      <span>{t("reports.scheduledAutomation")} / {report.created_at}</span>
-                    </div>
-                    <StatusBadge label={formatStatus(report.status, t)} tone={report.status === "ready" ? "success" : "warning"} />
-                  </article>
-                ))
-              : mockReports.map((report) => (
-                  <article className="record-card" key={report.titleKey}>
-                    <div>
-                      <strong>{t(report.titleKey)}</strong>
-                      <span>
-                        {formatReportType(report.type, t)} / {report.sourceFiles} / {report.createdAt}
-                      </span>
-                    </div>
-                    <StatusBadge label={formatStatus(report.status, t)} tone={report.status === "ready" ? "success" : "warning"} />
-                  </article>
-                ))}
+            {reports.length ? (
+              reports.map((report) => (
+                <article
+                  className="record-card"
+                  key={report.id}
+                  onClick={() => setSelected(report)}
+                  style={{ cursor: "pointer", outline: selected?.id === report.id ? "2px solid var(--accent, #7c5cd6)" : undefined }}
+                >
+                  <div>
+                    <strong>{report.title}</strong>
+                    <span>{report.created_at}</span>
+                  </div>
+                  <StatusBadge label={formatStatus(report.status, t)} tone={report.status === "ready" ? "success" : "warning"} />
+                </article>
+              ))
+            ) : (
+              <EmptyState title={t("reports.noReports")} description={t("reports.noReportsDescription")} />
+            )}
           </div>
         </article>
-        {reports[0]?.content_markdown ? (
+
+        {selected?.content_markdown ? (
           <article className="report-viewer">
             <div className="report-header-block">
-              <p className="eyebrow">{t("reports.ownerReport")}</p>
-              <h2>{reports[0].title === "Owner Daily Report" ? t("reports.ownerDailyReport") : reports[0].title}</h2>
-              <span>{t("reports.generatedLocally")} / {reports[0].created_at} / {t("reports.language")}: {getCurrentLanguage()}</span>
+              <p className="eyebrow">{t("reports.generatedLocally")}</p>
+              <h2>{selected.title}</h2>
+              <span>{selected.created_at}</span>
+              <div style={{ marginTop: 8 }}>
+                <button className="table-action" onClick={() => void copyMarkdown().catch((error: Error) => setMessage(error.message))} type="button">
+                  <ClipboardCopy size={14} />
+                  {t("reports.copyMarkdown")}
+                </button>
+              </div>
             </div>
             <div className="report-section-card">
-              <h3>{t("reports.executiveSummary")}</h3>
-              <p>{reports[0].content_markdown.split("## Owner Summary")[1]?.split("##")[0]?.trim() || reports[0].content_markdown.split("## 老板摘要")[1]?.split("##")[0]?.trim() || t("reports.noSummary")}</p>
-            </div>
-            <div className="report-section-card warning-callout">
-              <h3>{t("reports.risks")}</h3>
-              <p>{reports[0].content_markdown.split("## Anomaly Alerts")[1]?.split("##")[0]?.trim() || reports[0].content_markdown.split("## 异常提醒")[1]?.split("##")[0]?.trim() || t("reports.noRisks")}</p>
-            </div>
-            <div className="report-section-card">
-              <h3>{t("reports.actionItems")}</h3>
-              <pre className="report-markdown">{reports[0].content_markdown.split("## Sales Follow-up Tasks")[1]?.trim() || reports[0].content_markdown.split("## 销售跟进任务")[1]?.trim() || reports[0].content_markdown}</pre>
+              <pre className="report-markdown" style={{ whiteSpace: "pre-wrap" }}>{selected.content_markdown}</pre>
             </div>
           </article>
-        ) : reports.length || mockReports.length ? (
-          <ReportViewer />
         ) : (
           <EmptyState title={t("reports.noReports")} description={t("reports.noReportsDescription")} />
         )}

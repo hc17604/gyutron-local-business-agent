@@ -179,7 +179,13 @@ def sync_connector(connector_id: int, sync_type: str = "manual", _: dict = Depen
         input_summary=f"sync_type={sync_type}",
         output_summary=f"{status}: {result.summary}",
     )
-    return {"sync_job_id": sync_job_id, "status": status, **result.dict()}
+    response = {"sync_job_id": sync_job_id, "status": status, **result.dict()}
+    # Phase 3: website data drives rules — evaluate right after every successful sync.
+    if connector_row["connector_type"] == "gyutron_website":
+        from app.services.rules_engine import evaluate_rules
+
+        response["rules"] = evaluate_rules(connector_id)
+    return response
 
 
 @router.get("/{connector_id}/sync-jobs")

@@ -147,6 +147,8 @@ class GyutronWebsiteConnector(BaseConnector):
             source = (body.get("meta") or {}).get("source") or "gyutron-website"
             found += len(rows)
             imported += self._upsert_rows(connector_id, source, data_type, rows)
+            if data_type == "event":
+                self._apply_status_events(connector_id, rows)
             for row in rows:
                 created = row.get("created_at")
                 if created and (max_created is None or created > max_created):
@@ -190,6 +192,31 @@ class GyutronWebsiteConnector(BaseConnector):
                 count += 1
             connection.commit()
         return count
+
+    @staticmethod
+    def _apply_status_events(connector_id: int, event_rows: list[dict]) -> None:
+        """Replay `*.status_changed` events onto the local copies, so a status set in
+        the website /admin (e.g. replied/spam) reaches reports & rules without
+        re-fetching the row itself (the `since` watermark would skip old rows)."""
+        updates = []
+        for event in event_rows:
+            if not str(event.get("event_type") or "").endswith(".status_changed"):
+                continue
+            payload = event.get("payload") or {}
+            new_status = payload.get("new_status")
+            entity_type = event.get("entity_type")
+            entity_id = event.get("entity_id")
+            if new_status and entity_type and entity_id:
+                updates.append((new_status, connector_id, entity_type, entity_id))
+        if not updates:
+            return
+        with get_connection() as connection:
+            for new_status, cid, entity_type, entity_id in updates:
+                connection.execute(
+                    "UPDATE website_data SET status = ?, synced_at = CURRENT_TIMESTAMP WHERE connector_id = ? AND data_type = ? AND external_id = ?",
+                    (new_status, cid, entity_type, entity_id),
+                )
+            connection.commit()
 
     # ------------------------------- state ---------------------------------
     @staticmethod

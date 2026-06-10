@@ -97,6 +97,34 @@ export interface SyncJob {
   completed_at?: string;
 }
 
+export interface AgentTask {
+  id: number;
+  title: string;
+  description?: string;
+  task_type: string;
+  priority: string;
+  status: string;
+  source: string;
+  entity_type?: string;
+  entity_id?: string;
+  rule_id?: string;
+  recommendation_text?: string;
+  due_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BusinessRuleInfo {
+  rule_id: string;
+  name: { en: string; zh: string };
+  description: { en: string; zh: string };
+  kind: string;
+  enabled: boolean;
+  config: Record<string, unknown>;
+  last_triggered_at?: string;
+  triggered_count: number;
+}
+
 export interface AutomationRule {
   id: number;
   name: string;

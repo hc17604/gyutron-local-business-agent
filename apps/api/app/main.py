@@ -17,7 +17,9 @@ from app.routers.health import router as health_router
 from app.routers.license import router as license_router
 from app.routers.overview import router as overview_router
 from app.routers.reports import router as reports_router
+from app.routers.rules import router as rules_router
 from app.routers.security import router as security_router
+from app.routers.tasks import router as tasks_router
 from app.routers.settings import router as settings_router
 from app.routers.setup import router as setup_router
 from app.routers.system import router as system_router
@@ -29,6 +31,9 @@ from app.scheduler.scheduler import local_scheduler
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_database()
+    from app.services.bootstrap import ensure_phase3_defaults
+
+    ensure_phase3_defaults()
     local_scheduler.start()
     yield
     local_scheduler.stop()
@@ -59,6 +64,8 @@ app.include_router(connectors_router)
 app.include_router(automations_router)
 app.include_router(alerts_router)
 app.include_router(reports_router)
+app.include_router(tasks_router)
+app.include_router(rules_router)
 app.include_router(overview_router)
 app.include_router(security_router)
 app.include_router(backups_router)

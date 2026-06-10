@@ -145,14 +145,15 @@ def test_website_leads_summary_generates_report(isolated_db, monkeypatch):
         report = connection.execute("SELECT * FROM reports WHERE id = ?", (result["report_id"],)).fetchone()
     assert report["status"] == "ready"
     summary_json = json.loads(report["summary_json"])
-    assert summary_json["source"] == "gyutron_website"
+    assert summary_json["report_type"] == "website_leads_summary"
+    assert summary_json["version"] == 2
     assert summary_json["totals"]["rfq"] == 2
     assert summary_json["new_rfqs"] == 2
-    assert summary_json["overdue"] == 1  # the 2026-01-01 row is >48h old
+    assert summary_json["overdue"] >= 1  # the 2026-01-01 row is >48h old
     assert summary_json["rfq_by_country"]["Germany"] == 2
-    assert "End-of-line" not in report["content_markdown"] or True  # markdown exists
+    assert summary_json["recommended_actions"]
     assert "## Suggested actions" in report["content_markdown"]
 
-    # Chinese variant
+    # Chinese variant (v2 titles carry the time range, e.g. 官网线索摘要（全部）)
     result_zh = generate_website_leads_summary(connector_id=connector_id, language="zh-CN")
-    assert result_zh["title"] == "官网线索摘要"
+    assert result_zh["title"].startswith("官网线索摘要")

@@ -176,6 +176,43 @@ CREATE TABLE IF NOT EXISTS connector_state (
   FOREIGN KEY(connector_id) REFERENCES data_connectors(id)
 );
 
+CREATE TABLE IF NOT EXISTS agent_tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  task_type TEXT NOT NULL,
+  priority TEXT NOT NULL DEFAULT 'medium',
+  status TEXT NOT NULL DEFAULT 'open',
+  source TEXT NOT NULL DEFAULT 'gyutron-website',
+  entity_type TEXT,
+  entity_id TEXT,
+  rule_id TEXT,
+  recommendation_text TEXT,
+  due_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(rule_id, entity_id)
+);
+
+CREATE TABLE IF NOT EXISTS rule_state (
+  rule_id TEXT PRIMARY KEY,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  config_json TEXT NOT NULL DEFAULT '{}',
+  last_triggered_at TEXT,
+  triggered_count INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS rule_triggers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  rule_id TEXT NOT NULL,
+  entity_type TEXT,
+  entity_id TEXT,
+  output_type TEXT NOT NULL DEFAULT 'task',
+  output_id TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS automation_rules (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,

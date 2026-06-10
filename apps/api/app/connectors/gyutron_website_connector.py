@@ -62,8 +62,11 @@ class GyutronWebsiteConnector(BaseConnector):
 
     # ------------------------------ config --------------------------------
     @staticmethod
-    def _api_key() -> str:
-        return os.environ.get("GYUTRON_WEBSITE_API_KEY", "").strip()
+    def _api_key(config: dict | None = None) -> str:
+        # Per-connector key env var (multi-customer): config.api_key_env names the
+        # variable; the VALUE always stays in the environment, never in config_json.
+        env_var = (config or {}).get("api_key_env") or "GYUTRON_WEBSITE_API_KEY"
+        return os.environ.get(env_var, "").strip()
 
     @staticmethod
     def _base_url(config: dict | None) -> str:
@@ -71,7 +74,7 @@ class GyutronWebsiteConnector(BaseConnector):
 
     def _client(self, config: dict | None) -> httpx.Client:
         headers = {}
-        key = self._api_key()
+        key = self._api_key(config)
         if key:
             headers["Authorization"] = f"Bearer {key}"
         return httpx.Client(base_url=self._base_url(config), headers=headers, timeout=20.0, transport=self._transport)
@@ -89,10 +92,10 @@ class GyutronWebsiteConnector(BaseConnector):
                 health = client.get("/api/v1/health")
                 health.raise_for_status()
                 health_body = health.json()
-                if not self._api_key():
+                if not self._api_key(config):
                     return {
                         "status": "error",
-                        "message": "Health OK, but GYUTRON_WEBSITE_API_KEY is not set in the environment — metadata/resources need it.",
+                        "message": f"Health OK, but {(config or {}).get('api_key_env') or 'GYUTRON_WEBSITE_API_KEY'} is not set in the environment — metadata/resources need it.",
                     }
                 meta = client.get("/api/v1/metadata")
                 if meta.status_code in (401, 403):
@@ -108,8 +111,9 @@ class GyutronWebsiteConnector(BaseConnector):
 
     # -------------------------------- sync ---------------------------------
     def sync(self, connector_id: int, config: dict, auth: dict | None = None, *, sync_type: str = "manual") -> ConnectorSyncResult:
-        if not self._api_key():
-            raise GyutronWebsiteAuthError("GYUTRON_WEBSITE_API_KEY is not set in the environment")
+        if not self._api_key(config):
+            env_var = (config or {}).get("api_key_env") or "GYUTRON_WEBSITE_API_KEY"
+            raise GyutronWebsiteAuthError(f"{env_var} is not set in the environment")
         total_found = 0
         total_imported = 0
         notes: list[str] = []
@@ -145,6 +149,7 @@ class GyutronWebsiteConnector(BaseConnector):
             body = response.json() or {}
             rows = body.get("data") or []
             source = (body.get("meta") or {}).get("source") or "gyutron-website"
+            self._register_source(connector_id, source)
             found += len(rows)
             imported += self._upsert_rows(connector_id, source, data_type, rows)
             if data_type == "event":
@@ -193,6 +198,20 @@ class GyutronWebsiteConnector(BaseConnector):
                 count += 1
             connection.commit()
         return count
+
+    _registered_sources: set = set()
+
+    def _register_source(self, connector_id: int, source: str) -> None:
+        """Register the API's source identity in data_sources + bind customer
+        ownership (idempotent; cached per process)."""
+        if source in self._registered_sources:
+            return
+        from app.services.commerce_store import ensure_source
+        from app.services.customers import ensure_customers
+
+        ensure_source(source, source, "website-api", connector_id)
+        ensure_customers()
+        self._registered_sources.add(source)
 
     @staticmethod
     def _apply_status_events(connector_id: int, event_rows: list[dict]) -> None:

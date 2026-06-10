@@ -13,18 +13,25 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 
 class GenerateReportPayload(BaseModel):
     language: str | None = "en"
+    customer_id: str | None = None
 
 
 class WebsiteLeadsPayload(BaseModel):
     connector_id: int | None = None
-    language: str | None = "en"
+    language: str | None = None
     time_range: str | None = "all"
+    customer_id: str | None = None
 
 
 @router.get("")
-def list_reports():
+def list_reports(customer_id: str | None = None):
     with get_connection() as connection:
-        rows = connection.execute("SELECT * FROM reports ORDER BY created_at DESC LIMIT 100").fetchall()
+        if customer_id:
+            rows = connection.execute(
+                "SELECT * FROM reports WHERE customer_id = ? ORDER BY created_at DESC LIMIT 100", (customer_id,)
+            ).fetchall()
+        else:
+            rows = connection.execute("SELECT * FROM reports ORDER BY created_at DESC LIMIT 100").fetchall()
     return {"reports": [dict(row) for row in rows]}
 
 
@@ -45,8 +52,9 @@ def website_leads_summary_endpoint(payload: WebsiteLeadsPayload | None = None, _
 @router.post("/daily-owner")
 def daily_owner_endpoint(payload: WebsiteLeadsPayload | None = None, _: dict = Depends(require_min_role("operator"))):
     return generate_daily_owner_report(
-        language=((payload.language if payload else None) or "en"),
+        language=(payload.language if payload else None),
         connector_id=(payload.connector_id if payload else None),
+        customer_id=(payload.customer_id if payload else None),
     )
 
 

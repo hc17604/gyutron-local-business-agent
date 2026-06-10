@@ -661,5 +661,26 @@
     "next": "下一步",
     "finish": "完成设置",
     "failed": "设置失败。"
+  },
+  "dashboard2": {
+    "title": "老板驾驶舱",
+    "description": "跨源总览：线索、交易、任务、预警——按客户、来源、时间范围过滤。",
+    "allSources": "全部来源",
+    "allTime": "全部时间",
+    "demoBanner": "演示模式 —— 虚构数据，与真实客户完全隔离。",
+    "inquiries": "询盘 + RFQ",
+    "support": "支持",
+    "orders": "订单",
+    "revenue": "营收（基准币）",
+    "aov": "客单价",
+    "openTasks": "待办任务",
+    "reconciliation": "支付对账",
+    "unmatched": "未匹配",
+    "topProducts": "Top 产品",
+    "byCountry": "按国家",
+    "cartEvents": "商城行为",
+    "latestReport": "最新报告",
+    "noReport": "暂无报告——请到报告页生成。",
+    "noData": "该范围内暂无数据。"
   }
 }

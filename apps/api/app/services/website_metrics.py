@@ -82,16 +82,23 @@ def load_records(
     time_range: str = "all",
     types: tuple = RECORD_TYPES,
     include_excluded: bool = False,
+    sources: list[str] | None = None,
 ) -> list[dict]:
-    """Parsed, exclusion-filtered records: {type,id,status,created(dt),data}."""
+    """Parsed, exclusion-filtered records: {type,id,source,status,created(dt),data}.
+    `sources` = customer isolation filter (from customers.customer_sources)."""
+    query = "SELECT data_type, external_id, source, status, created_at_source, data_json FROM website_data"
+    clauses, params = [], []
+    if connector_id is not None:
+        clauses.append("connector_id = ?")
+        params.append(connector_id)
+    if sources is not None:
+        placeholders = ", ".join("?" for _ in sources) or "''"
+        clauses.append(f"source IN ({placeholders})")
+        params.extend(sources)
+    if clauses:
+        query += " WHERE " + " AND ".join(clauses)
     with get_connection() as connection:
-        if connector_id is None:
-            rows = connection.execute("SELECT data_type, external_id, status, created_at_source, data_json FROM website_data").fetchall()
-        else:
-            rows = connection.execute(
-                "SELECT data_type, external_id, status, created_at_source, data_json FROM website_data WHERE connector_id = ?",
-                (connector_id,),
-            ).fetchall()
+        rows = connection.execute(query, params).fetchall()
 
     start, end = range_bounds(time_range)
     exclusions = exclusion_config()
@@ -108,7 +115,7 @@ def load_records(
             continue
         if end and created and created >= end:
             continue
-        item = {"type": row["data_type"], "id": row["external_id"], "status": row["status"], "created": created, "data": data}
+        item = {"type": row["data_type"], "id": row["external_id"], "source": row["source"], "status": row["status"], "created": created, "data": data}
         if not include_excluded and is_excluded(item, exclusions):
             continue
         out.append(item)

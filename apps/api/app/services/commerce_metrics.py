@@ -13,12 +13,18 @@ from app.services.website_metrics import parse_created, range_bounds
 REVENUE_STATUSES = ("paid", "fulfilled")
 
 
-def _rows(table: str, source: str | None = None) -> list[dict]:
+def _rows(table: str, source: str | None = None, sources: list[str] | None = None) -> list[dict]:
     query = f"SELECT * FROM {table}"
-    params: list = []
+    clauses, params = [], []
     if source:
-        query += " WHERE source = ?"
+        clauses.append("source = ?")
         params.append(source)
+    if sources is not None:
+        placeholders = ", ".join("?" for _ in sources) or "''"
+        clauses.append(f"source IN ({placeholders})")
+        params.extend(sources)
+    if clauses:
+        query += " WHERE " + " AND ".join(clauses)
     with get_connection() as connection:
         return [dict(r) for r in connection.execute(query, params).fetchall()]
 
@@ -33,13 +39,13 @@ def _in_range(item_created: str | None, time_range: str) -> bool:
     return True
 
 
-def commerce_summary(source: str | None = None, time_range: str = "all") -> dict:
-    orders = [o for o in _rows("orders", source) if _in_range(o.get("created_at_source"), time_range)]
+def commerce_summary(source: str | None = None, time_range: str = "all", sources: list[str] | None = None) -> dict:
+    orders = [o for o in _rows("orders", source, sources) if _in_range(o.get("created_at_source"), time_range)]
     revenue_orders = [o for o in orders if o["status"] in REVENUE_STATUSES]
     revenue = round(sum(o.get("amount_base") or 0 for o in revenue_orders), 2)
     aov = round(revenue / len(revenue_orders), 2) if revenue_orders else 0.0
 
-    items = _rows("order_items", source)
+    items = _rows("order_items", source, sources)
     order_ids = {o["external_id"] for o in orders}
     top_products: Counter = Counter()
     for item in items:
@@ -49,9 +55,7 @@ def commerce_summary(source: str | None = None, time_range: str = "all") -> dict
     by_country = Counter((o.get("country") or "—") for o in orders)
     by_status = Counter(o["status"] for o in orders)
 
-    events = [e for e in _rows("cart_events", None if source else None) if _in_range(e.get("occurred_at"), time_range)]
-    if source:
-        events = [e for e in events if e["source"] == source]
+    events = [e for e in _rows("cart_events", source, sources) if _in_range(e.get("occurred_at"), time_range)]
     event_counts = Counter(e["event_type"] for e in events)
 
     return {
@@ -88,8 +92,8 @@ def abandoned_carts(window_hours: int = 48, source: str = "gyutron-shop") -> lis
     return out
 
 
-def paid_not_fulfilled(threshold_days: int = 7, source: str | None = None) -> list[dict]:
-    orders = _rows("orders", source)
+def paid_not_fulfilled(threshold_days: int = 7, source: str | None = None, sources: list[str] | None = None) -> list[dict]:
+    orders = _rows("orders", source, sources)
     cutoff = datetime.now(timezone.utc) - timedelta(days=threshold_days)
     out = []
     for o in orders:
@@ -116,9 +120,9 @@ def high_views_no_inquiry(min_views: int = 5, source: str = "gyutron-shop") -> l
     return [(h, n) for h, n in views.most_common() if n >= min_views and h not in engaged]
 
 
-def revenue_reconciliation(source: str | None = None) -> dict:
+def revenue_reconciliation(source: str | None = None, sources: list[str] | None = None) -> dict:
     """payments vs orders cross-check (per order_ref) — proves no double count."""
-    orders = {o["external_id"]: o for o in _rows("orders", source)}
-    payments = [p for p in _rows("payments", source) if p["status"] == "paid"]
+    orders = {o["external_id"]: o for o in _rows("orders", source, sources)}
+    payments = [p for p in _rows("payments", source, sources) if p["status"] == "paid"]
     matched = sum(1 for p in payments if p.get("order_ref") in orders)
     return {"paid_payments": len(payments), "matched_to_orders": matched, "unmatched": len(payments) - matched}

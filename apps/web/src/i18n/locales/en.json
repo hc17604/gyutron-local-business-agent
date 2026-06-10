@@ -661,5 +661,26 @@
     "next": "Next",
     "finish": "Finish Setup",
     "failed": "Setup failed."
+  },
+  "dashboard2": {
+    "title": "Owner Dashboard",
+    "description": "Cross-source overview: leads, commerce, tasks, alerts — filtered by customer, source, and time range.",
+    "allSources": "All sources",
+    "allTime": "All time",
+    "demoBanner": "DEMO MODE — fictional data, isolated from real customers.",
+    "inquiries": "Inquiries + RFQs",
+    "support": "support",
+    "orders": "Orders",
+    "revenue": "Revenue (base)",
+    "aov": "AOV",
+    "openTasks": "Open tasks",
+    "reconciliation": "Payments matched",
+    "unmatched": "unmatched",
+    "topProducts": "Top products",
+    "byCountry": "RFQ/orders by country",
+    "cartEvents": "Shop behavior",
+    "latestReport": "Latest report",
+    "noReport": "No report yet — generate one on the Reports page.",
+    "noData": "No data in this range."
   }
 }

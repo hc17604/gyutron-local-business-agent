@@ -18,10 +18,11 @@ def _store_report(title: str, content: str, summary_json: dict) -> int:
     with get_connection() as connection:
         cursor = connection.execute(
             """
-            INSERT INTO reports (title, status, content_markdown, summary_json, rules_snapshot_json, model_snapshot_json)
-            VALUES (?, 'ready', ?, ?, '[]', ?)
+            INSERT INTO reports (title, status, content_markdown, summary_json, rules_snapshot_json, model_snapshot_json, customer_id)
+            VALUES (?, 'ready', ?, ?, '[]', ?, ?)
             """,
-            (title, content, json.dumps(summary_json, ensure_ascii=False), json.dumps({"mode": "local_deterministic"})),
+            (title, content, json.dumps(summary_json, ensure_ascii=False), json.dumps({"mode": "local_deterministic"}),
+             summary_json.get("customer_id")),
         )
         report_id = cursor.lastrowid
         connection.commit()
@@ -59,13 +60,22 @@ TYPE_LABELS = {
 
 
 # ------------------------------ Daily Owner Report --------------------------- #
-def generate_daily_owner_report(language: str = "en", connector_id: int | None = None) -> dict:
-    zh = (language or "en").lower().startswith("zh")
+def generate_daily_owner_report(language: str | None = "en", connector_id: int | None = None, customer_id: str | None = None) -> dict:
+    sources = None
+    if customer_id:
+        from app.services.customers import customer_sources, get_customer
+
+        sources = customer_sources(customer_id)
+        customer = get_customer(customer_id)
+        if customer and not language:
+            language = customer.get("report_language") or "en"
+    language = language or "en"
+    zh = language.lower().startswith("zh")
     L = TYPE_LABELS["zh" if zh else "en"]
 
-    yesterday = metrics.load_records(connector_id, time_range="yesterday")
-    today = metrics.load_records(connector_id, time_range="today")
-    all_records = metrics.load_records(connector_id)
+    yesterday = metrics.load_records(connector_id, time_range="yesterday", sources=sources)
+    today = metrics.load_records(connector_id, time_range="today", sources=sources)
+    all_records = metrics.load_records(connector_id, sources=sources)
     y_tot, t_tot = metrics.totals_by_type(yesterday), metrics.totals_by_type(today)
 
     # day-before for the ± comparison
@@ -117,8 +127,8 @@ def generate_daily_owner_report(language: str = "en", connector_id: int | None =
     # ---- commerce section (Phase 4 — same report, zero second pipeline) ----
     from app.services.commerce_metrics import commerce_summary
 
-    com_t = commerce_summary(time_range="today")
-    com_w = commerce_summary(time_range="7d")
+    com_t = commerce_summary(time_range="today", sources=sources)
+    com_w = commerce_summary(time_range="7d", sources=sources)
 
     def commerce_block() -> str:
         if zh:
@@ -226,7 +236,7 @@ By product category:
         summary = f"Yesterday: {sum(y_tot.values())} new; {len(open_now)} unprocessed; {len(overdue)} overdue; {len(tasks)} open task(s)."
 
     report_id = _store_report(title, content, {
-        "report_type": "daily_owner", "language": language, "connector_id": connector_id,
+        "report_type": "daily_owner", "language": language, "connector_id": connector_id, "customer_id": customer_id,
         "yesterday": y_tot, "today": t_tot, "unprocessed": len(open_now), "overdue": len(overdue),
         "open_tasks": len(tasks), "flags": flags,
     })

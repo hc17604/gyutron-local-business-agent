@@ -97,6 +97,19 @@ export interface SyncJob {
   completed_at?: string;
 }
 
+export interface CustomerInfo {
+  customer_id: string;
+  display_name: string;
+  brand_name?: string;
+  logo_text?: string;
+  accent_color?: string;
+  report_language?: string;
+  currency?: string;
+  footer_legal?: string;
+  is_demo: number;
+  config?: Record<string, unknown>;
+}
+
 export interface AgentTask {
   id: number;
   title: string;

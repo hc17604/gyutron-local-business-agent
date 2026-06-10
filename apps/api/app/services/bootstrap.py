@@ -29,6 +29,9 @@ DEFAULT_AUTOMATIONS = [
 
 def ensure_phase3_defaults() -> None:
     ensure_rule_state()
+    from app.services.customers import ensure_customers
+
+    ensure_customers()
     with get_connection() as connection:
         connector = connection.execute(
             "SELECT id FROM data_connectors WHERE connector_type = 'gyutron_website' ORDER BY id DESC LIMIT 1"

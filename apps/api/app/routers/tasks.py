@@ -18,9 +18,17 @@ class TaskPatch(BaseModel):
 
 
 @router.get("")
-def list_tasks(status: str | None = None, priority: str | None = None, task_type: str | None = None, limit: int = 200):
+def list_tasks(status: str | None = None, priority: str | None = None, task_type: str | None = None,
+               customer_id: str | None = None, limit: int = 200):
     query = "SELECT * FROM agent_tasks"
     clauses, params = [], []
+    if customer_id:
+        from app.services.customers import customer_sources
+
+        sources = customer_sources(customer_id) or []
+        placeholders = ", ".join("?" for _ in sources) or "''"
+        clauses.append(f"source IN ({placeholders})")
+        params.extend(sources)
     if status:
         clauses.append("status = ?"); params.append(status)
     if priority:

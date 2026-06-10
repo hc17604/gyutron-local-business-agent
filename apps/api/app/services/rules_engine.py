@@ -179,18 +179,24 @@ def ensure_rule_state() -> None:
         connection.commit()
 
 
-def rule_runtime(rule_id: str) -> tuple[bool, dict]:
-    """(enabled, effective_config) — state config overrides code defaults."""
+def rule_runtime(rule_id: str, customer_id: str | None = None) -> tuple[bool, dict]:
+    """(enabled, effective_config). Three config layers: code defaults <
+    rule_state overrides < per-customer thresholds (customers.config_json)."""
     base = dict(RULE_INDEX[rule_id]["config"])
     with get_connection() as connection:
         row = connection.execute("SELECT enabled, config_json FROM rule_state WHERE rule_id = ?", (rule_id,)).fetchone()
-    if row is None:
-        return True, base
-    try:
-        base.update(json.loads(row["config_json"] or "{}"))
-    except json.JSONDecodeError:
-        pass
-    return bool(row["enabled"]), base
+    enabled = True
+    if row is not None:
+        enabled = bool(row["enabled"])
+        try:
+            base.update(json.loads(row["config_json"] or "{}"))
+        except json.JSONDecodeError:
+            pass
+    if customer_id:
+        from app.services.customers import customer_rule_threshold
+
+        base.update(customer_rule_threshold(customer_id, rule_id))
+    return enabled, base
 
 
 def list_rules_with_state() -> list[dict]:
@@ -243,15 +249,16 @@ def _priority_for(item: dict, base: str, overdue: bool) -> str:
 
 # ------------------------------- task creation ------------------------------ #
 def _create_task(connection, *, rule_id: str, task_type: str, entity_type: str, entity_id: str,
-                 title: str, description: str, priority: str, recommendation: str) -> int | None:
+                 title: str, description: str, priority: str, recommendation: str,
+                 source: str = "gyutron-website") -> int | None:
     """Idempotent insert (UNIQUE rule_id+entity_id). Returns task id when created."""
     cursor = connection.execute(
         """
         INSERT OR IGNORE INTO agent_tasks
           (title, description, task_type, priority, status, source, entity_type, entity_id, rule_id, recommendation_text)
-        VALUES (?, ?, ?, ?, 'open', 'gyutron-website', ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, 'open', ?, ?, ?, ?, ?)
         """,
-        (title, description, task_type, priority, entity_type, entity_id, rule_id, recommendation),
+        (title, description, task_type, priority, source, entity_type, entity_id, rule_id, recommendation),
     )
     if cursor.rowcount == 0:
         return None
@@ -273,17 +280,27 @@ def _label(item: dict) -> str:
     return f"{who}" + (f" · {extra}" if extra else "")
 
 
-def evaluate_rules(connector_id: int | None = None) -> dict:
-    """Run all enabled task-producing rules. Returns counters."""
+def evaluate_rules(connector_id: int | None = None, customer_id: str | None = None) -> dict:
+    """Run all enabled task-producing rules. customer_id scopes the data to that
+    customer's sources and applies its threshold overrides. Returns counters."""
     ensure_rule_state()
-    records = metrics.load_records(connector_id)
+    sources = None
+    if customer_id:
+        from app.services.customers import customer_sources
+
+        sources = customer_sources(customer_id)
+    records = metrics.load_records(connector_id, sources=sources)
     created = 0
     auto_closed = 0
+    # auto-close must NEVER touch tasks outside this evaluation's scope — a
+    # connector- or customer-scoped run only sees ITS rows, so an unscoped
+    # close would wrongly kill other customers' open tasks.
+    close_scope = sources if sources is not None else (sorted({r["source"] for r in records}) if connector_id else None)
 
     with get_connection() as connection:
         # 1/2. follow-up rules (rfq + support)
         for rule_id in ("rfq_followup", "support_review"):
-            enabled, cfg = rule_runtime(rule_id)
+            enabled, cfg = rule_runtime(rule_id, customer_id)
             if not enabled:
                 continue
             rule = RULE_INDEX[rule_id]
@@ -307,12 +324,13 @@ def evaluate_rules(connector_id: int | None = None) -> dict:
                     description=f"{_label(item)} — status {item['status']}, {wait_note}.",
                     priority=priority,
                     recommendation=f"Reply to {item['data'].get('email') or 'the requester'} and move {item['id']} out of '{item['status']}'.",
+                    source=item.get("source") or "gyutron-website",
                 ):
                     created += 1
             auto_closed += _auto_close(connection, rule_id, matching_ids)
 
         # 3. download review
-        enabled, cfg = rule_runtime("download_review")
+        enabled, cfg = rule_runtime("download_review", customer_id)
         if enabled:
             matching_ids = set()
             for item in records:
@@ -335,16 +353,17 @@ def evaluate_rules(connector_id: int | None = None) -> dict:
                     description=f"{_label(item)} — {item['data'].get('requested_file') or '?'} ({access}).",
                     priority=_priority_for(item, "medium", False),
                     recommendation="Verify the requester, then send the document or approve/reject in /admin.",
+                    source=item.get("source") or "gyutron-website",
                 ):
                     created += 1
-            auto_closed += _auto_close(connection, "download_review", matching_ids)
+            auto_closed += _auto_close(connection, "download_review", matching_ids, close_scope)
 
         # 4. category opportunity (entity = category slug)
-        enabled, cfg = rule_runtime("category_opportunity")
+        enabled, cfg = rule_runtime("category_opportunity", customer_id)
         if enabled:
             window_days = int(cfg.get("window_days", 7))
             min_count = int(cfg.get("min_count", 3))
-            recent = metrics.load_records(connector_id, time_range="7d" if window_days <= 7 else "30d")
+            recent = metrics.load_records(connector_id, time_range="7d" if window_days <= 7 else "30d", sources=sources)
             counter: dict = {}
             for item in recent:
                 if item["type"] in ("rfq", "download_request"):
@@ -368,7 +387,7 @@ def evaluate_rules(connector_id: int | None = None) -> dict:
                     created += 1
 
         # 5. data hygiene
-        enabled, _cfg = rule_runtime("data_hygiene")
+        enabled, _cfg = rule_runtime("data_hygiene", customer_id)
         if enabled:
             for item in records:
                 if item["type"] not in ("lead", "rfq"):
@@ -390,15 +409,16 @@ def evaluate_rules(connector_id: int | None = None) -> dict:
                     description=f"{_label(item)} — {', '.join(problems)}.",
                     priority="low",
                     recommendation="Complete the record from the message text or follow up to ask.",
+                    source=item.get("source") or "gyutron-website",
                 ):
                     created += 1
 
         # ---- commerce rules (Phase 4) ----
         from app.services import commerce_metrics
 
-        enabled, cfg = rule_runtime("paid_not_fulfilled")
+        enabled, cfg = rule_runtime("paid_not_fulfilled", customer_id)
         if enabled:
-            stale = commerce_metrics.paid_not_fulfilled(int(cfg.get("threshold_days", 7)))
+            stale = commerce_metrics.paid_not_fulfilled(int(cfg.get("threshold_days", 7)), sources=sources)
             matching = {f"{o['source']}:{o['external_id']}" for o in stale}
             for o in stale:
                 if _create_task(
@@ -413,9 +433,9 @@ def evaluate_rules(connector_id: int | None = None) -> dict:
                     recommendation="Ship or update the order status in the source system; the workspace is read-only.",
                 ):
                     created += 1
-            auto_closed += _auto_close(connection, "paid_not_fulfilled", matching)
+            auto_closed += _auto_close(connection, "paid_not_fulfilled", matching, close_scope)
 
-        enabled, cfg = rule_runtime("high_views_no_inquiry")
+        enabled, cfg = rule_runtime("high_views_no_inquiry", customer_id)
         if enabled:
             hot = commerce_metrics.high_views_no_inquiry(int(cfg.get("min_views", 5)))
             for handle, views in hot:
@@ -439,11 +459,16 @@ def evaluate_rules(connector_id: int | None = None) -> dict:
     return {"tasks_created": created, "tasks_auto_closed": auto_closed}
 
 
-def _auto_close(connection, rule_id: str, still_matching: set) -> int:
-    """Close open tasks whose entity no longer matches the rule (loop closure)."""
-    rows = connection.execute(
-        "SELECT id, entity_id FROM agent_tasks WHERE rule_id = ? AND status = 'open'", (rule_id,)
-    ).fetchall()
+def _auto_close(connection, rule_id: str, still_matching: set, scope_sources: list | None = None) -> int:
+    """Close open tasks whose entity no longer matches the rule (loop closure).
+    scope_sources limits closure to tasks from the sources this run evaluated."""
+    query = "SELECT id, entity_id FROM agent_tasks WHERE rule_id = ? AND status = 'open'"
+    params: list = [rule_id]
+    if scope_sources is not None:
+        placeholders = ", ".join("?" for _ in scope_sources) or "''"
+        query += f" AND source IN ({placeholders})"
+        params.extend(scope_sources)
+    rows = connection.execute(query, params).fetchall()
     closed = 0
     for row in rows:
         if row["entity_id"] in still_matching:

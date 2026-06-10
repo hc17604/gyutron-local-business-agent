@@ -213,6 +213,26 @@ CREATE TABLE IF NOT EXISTS rule_triggers (
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ============================ Phase 5: customers =========================== --
+-- Customer (workspace tenant) registry. source = data origin; customer_id =
+-- ISOLATION boundary. Architecture stays one-deployment-per-customer on the
+-- website side; agent-side customer_id groups sources for filtering/branding.
+CREATE TABLE IF NOT EXISTS workspace_customers (
+  customer_id TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  brand_name TEXT,
+  logo_text TEXT,
+  accent_color TEXT,
+  report_language TEXT NOT NULL DEFAULT 'en',
+  currency TEXT NOT NULL DEFAULT 'USD',
+  timezone TEXT,
+  footer_legal TEXT,
+  is_demo INTEGER NOT NULL DEFAULT 0,
+  config_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ============================ Phase 4: commerce ============================ --
 -- Registry of every data source feeding the workspace (website API, shop
 -- behavior events, CSV commerce imports, future SaaS). Source filters in
@@ -504,8 +524,22 @@ def init_database() -> None:
     with sqlite3.connect(settings.database_path) as connection:
         connection.executescript(SCHEMA)
         _migrate_llm_configs(connection)
+        _migrate_phase5(connection)
         _seed_singletons(connection)
         connection.commit()
+
+
+def _migrate_phase5(connection: sqlite3.Connection) -> None:
+    """Customer-aware columns on existing tables (ALTER-if-missing pattern)."""
+    plans = {
+        "data_sources": {"customer_id": "TEXT", "is_mock": "INTEGER NOT NULL DEFAULT 0"},
+        "reports": {"customer_id": "TEXT"},
+    }
+    for table, columns in plans.items():
+        existing = {row[1] for row in connection.execute(f"PRAGMA table_info({table})").fetchall()}
+        for column, definition in columns.items():
+            if column not in existing:
+                connection.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
 
 @contextmanager

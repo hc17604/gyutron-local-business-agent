@@ -1,5 +1,6 @@
 import type {
   AgentChatResponse,
+  CustomerInfo,
   AgentMode,
   AgentTask,
   AuditLog,
@@ -191,8 +192,21 @@ export function getAutomationRuns(id: number): Promise<{ runs: Array<Record<stri
   return request<{ runs: Array<Record<string, unknown>> }>(`/automations/${id}/runs`);
 }
 
-export function getReports(): Promise<{ reports: LocalReport[] }> {
-  return request<{ reports: LocalReport[] }>("/reports");
+export function getReports(customerId?: string): Promise<{ reports: LocalReport[] }> {
+  const qs = customerId ? `?customer_id=${encodeURIComponent(customerId)}` : "";
+  return request<{ reports: LocalReport[] }>(`/reports${qs}`);
+}
+
+export function getCustomers(): Promise<{ customers: CustomerInfo[] }> {
+  return request<{ customers: CustomerInfo[] }>("/customers");
+}
+
+export function getCommerceOverview(params: { customer_id?: string; source?: string; time_range?: string }): Promise<Record<string, unknown>> {
+  const qs = new URLSearchParams();
+  if (params.customer_id) qs.set("customer_id", params.customer_id);
+  if (params.source) qs.set("source", params.source);
+  if (params.time_range) qs.set("time_range", params.time_range);
+  return request<Record<string, unknown>>(`/commerce/overview?${qs.toString()}`);
 }
 
 export function generateOwnerReport(language?: string): Promise<{ report_id: number; title: string; summary: string; language?: string }> {

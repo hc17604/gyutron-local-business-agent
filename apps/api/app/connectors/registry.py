@@ -1,5 +1,6 @@
 from app.connectors.base import BaseConnector
 from app.connectors.excel_csv_connector import ExcelCsvConnector
+from app.connectors.gyutron_website_connector import GyutronWebsiteConnector
 from app.connectors.local_folder_connector import LocalFolderConnector
 from app.connectors.mock_platforms import MockAlibabaConnector, MockAmazonConnector, MockShopeeConnector, MockShopifyConnector
 
@@ -7,6 +8,7 @@ from app.connectors.mock_platforms import MockAlibabaConnector, MockAmazonConnec
 CONNECTORS: dict[str, BaseConnector] = {
     "excel_csv": ExcelCsvConnector(),
     "local_folder": LocalFolderConnector(),
+    "gyutron_website": GyutronWebsiteConnector(),
     "alibaba": MockAlibabaConnector(),
     "shopee": MockShopeeConnector(),
     "amazon": MockAmazonConnector(),

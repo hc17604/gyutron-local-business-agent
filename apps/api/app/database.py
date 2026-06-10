@@ -152,6 +152,30 @@ CREATE TABLE IF NOT EXISTS sync_jobs (
   FOREIGN KEY(connector_id) REFERENCES data_connectors(id)
 );
 
+CREATE TABLE IF NOT EXISTS website_data (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  connector_id INTEGER NOT NULL,
+  source TEXT NOT NULL DEFAULT 'gyutron-website',
+  data_type TEXT NOT NULL,
+  external_id TEXT NOT NULL,
+  status TEXT,
+  created_at_source TEXT,
+  data_json TEXT NOT NULL DEFAULT '{}',
+  synced_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(connector_id, data_type, external_id),
+  FOREIGN KEY(connector_id) REFERENCES data_connectors(id)
+);
+
+CREATE TABLE IF NOT EXISTS connector_state (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  connector_id INTEGER NOT NULL,
+  state_key TEXT NOT NULL,
+  state_value TEXT,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(connector_id, state_key),
+  FOREIGN KEY(connector_id) REFERENCES data_connectors(id)
+);
+
 CREATE TABLE IF NOT EXISTS automation_rules (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,

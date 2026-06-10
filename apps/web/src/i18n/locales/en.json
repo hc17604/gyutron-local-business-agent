@@ -192,6 +192,9 @@
     "description": "Manage local-first data connectors. Platform connectors are placeholders until real API integrations are intentionally added.",
     "uploadData": "Upload Data",
     "addLocalFolder": "Add Local Folder",
+    "addGyutronWebsite": "Add GYUTRON Website",
+    "websiteConnectorCreated": "GYUTRON Website connector created. Set GYUTRON_WEBSITE_API_KEY in the backend environment before syncing.",
+    "leadsSummary": "Leads Summary",
     "createLocalFolder": "Create local folder connector",
     "createLocalFolderDescription": "Use a watched local folder for Alibaba, ERP, Shopee, Amazon, or Shopify exports.",
     "localOnly": "Local only",
@@ -464,6 +467,7 @@
   "connectorTypes": {
     "local_folder": "Local Folder",
     "excel_csv": "Excel / CSV",
+    "gyutron_website": "GYUTRON Website",
     "alibaba": "Alibaba",
     "shopee": "Shopee",
     "amazon": "Amazon",

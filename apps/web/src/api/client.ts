@@ -200,6 +200,13 @@ export function generateOwnerReport(language?: string): Promise<{ report_id: num
   });
 }
 
+export function generateWebsiteLeadsSummary(payload: { connector_id?: number; language?: string }): Promise<{ report_id: number; title: string; summary: string; language?: string }> {
+  return request<{ report_id: number; title: string; summary: string; language?: string }>("/reports/website-leads-summary", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export function getAlerts(): Promise<{ alerts: LocalAlert[] }> {
   return request<{ alerts: LocalAlert[] }>("/alerts");
 }

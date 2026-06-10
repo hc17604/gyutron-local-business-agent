@@ -192,6 +192,9 @@
     "description": "管理本地优先的数据连接器。真实平台 API 集成前，平台连接器仅作为占位能力展示。",
     "uploadData": "上传数据",
     "addLocalFolder": "添加本地文件夹",
+    "addGyutronWebsite": "添加 GYUTRON 官网",
+    "websiteConnectorCreated": "已创建 GYUTRON 官网连接器。同步前请先在后端环境中设置 GYUTRON_WEBSITE_API_KEY。",
+    "leadsSummary": "线索摘要",
     "createLocalFolder": "创建本地文件夹连接器",
     "createLocalFolderDescription": "监听本地文件夹，用于 Alibaba、ERP、Shopee、Amazon 或 Shopify 导出文件。",
     "localOnly": "仅本地",
@@ -464,6 +467,7 @@
   "connectorTypes": {
     "local_folder": "本地文件夹",
     "excel_csv": "Excel / CSV",
+    "gyutron_website": "GYUTRON 官网",
     "alibaba": "Alibaba",
     "shopee": "Shopee",
     "amazon": "Amazon",

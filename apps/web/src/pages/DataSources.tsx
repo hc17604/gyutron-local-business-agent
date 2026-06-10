@@ -1,8 +1,8 @@
-import { FolderPlus, PlugZap, RefreshCw } from "lucide-react";
+import { FileBarChart, FolderPlus, Globe, PlugZap, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { createConnector, getConnectors, syncConnector, testConnector } from "../api/client";
+import { createConnector, generateWebsiteLeadsSummary, getConnectors, syncConnector, testConnector } from "../api/client";
 import { EmptyState } from "../components/common/EmptyState";
 import { PageHeader } from "../components/common/PageHeader";
 import { SectionHeader } from "../components/common/SectionHeader";
@@ -13,7 +13,7 @@ import type { ConnectorCatalogItem, DataConnector } from "../types/api";
 const defaultFolder = "D:\\Codex\\gyutron-local-business-agent\\data\\imports";
 
 export function DataSources() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [catalog, setCatalog] = useState<ConnectorCatalogItem[]>([]);
   const [connectors, setConnectors] = useState<DataConnector[]>([]);
   const [folderPath, setFolderPath] = useState(defaultFolder);
@@ -40,6 +40,22 @@ export function DataSources() {
     setMessage(t("dataSources.connectorCreated"));
   }
 
+  async function handleAddGyutronWebsite() {
+    const connector = await createConnector({
+      connector_type: "gyutron_website",
+      name: "GYUTRON Website",
+      description: "Website leads via the read-only Data API.",
+      config_json: {},
+    });
+    setConnectors((current) => [connector, ...current]);
+    setMessage(t("dataSources.websiteConnectorCreated"));
+  }
+
+  async function handleLeadsSummary(id: number) {
+    const result = await generateWebsiteLeadsSummary({ connector_id: id, language: i18n.language });
+    setMessage(result.summary);
+  }
+
   async function handleTest(id: number) {
     const result = await testConnector(id);
     setMessage(result.message);
@@ -55,10 +71,16 @@ export function DataSources() {
     <div className="page-stack">
       <PageHeader
         actions={
-          <button className="button primary" onClick={handleAddLocalFolder} type="button">
-            <FolderPlus size={16} />
-            {t("dataSources.addLocalFolder")}
-          </button>
+          <>
+            <button className="button primary" onClick={() => void handleAddGyutronWebsite().catch((error: Error) => setMessage(error.message))} type="button">
+              <Globe size={16} />
+              {t("dataSources.addGyutronWebsite")}
+            </button>
+            <button className="button primary" onClick={handleAddLocalFolder} type="button">
+              <FolderPlus size={16} />
+              {t("dataSources.addLocalFolder")}
+            </button>
+          </>
         }
         description={t("dataSources.description")}
         eyebrow={t("dataSources.eyebrow")}
@@ -118,6 +140,12 @@ export function DataSources() {
                         <RefreshCw size={14} />
                         {t("common.sync")}
                       </button>
+                      {connector.connector_type === "gyutron_website" ? (
+                        <button className="table-action" onClick={() => void handleLeadsSummary(connector.id).catch((error: Error) => setMessage(error.message))} type="button">
+                          <FileBarChart size={14} />
+                          {t("dataSources.leadsSummary")}
+                        </button>
+                      ) : null}
                     </div>
                   </td>
                 </tr>

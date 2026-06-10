@@ -2,6 +2,32 @@ from pathlib import Path
 import os
 
 
+def _load_dotenv_defaults() -> None:
+    """Zero-dependency .env loader (repo-root .env, gitignored).
+
+    Values already present in the process environment ALWAYS win; .env only
+    fills the gaps. This makes secrets like GYUTRON_WEBSITE_API_KEY work no
+    matter how the backend is launched (new/old terminal, IDE, scheduler) —
+    `setx` alone only reaches processes whose parent re-read the registry.
+    """
+    env_file = Path(__file__).resolve().parents[3] / ".env"
+    try:
+        for raw_line in env_file.read_text(encoding="utf-8-sig").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and value and key not in os.environ:
+                os.environ[key] = value
+    except OSError:
+        pass
+
+
+_load_dotenv_defaults()
+
+
 class Settings:
     service_name = "gyutron-local-agent-api"
     repo_root = Path(__file__).resolve().parents[3]

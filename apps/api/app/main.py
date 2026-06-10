@@ -14,6 +14,7 @@ from app.routers.backups import router as backups_router
 from app.routers.commerce import router as commerce_router
 from app.routers.connectors import router as connectors_router
 from app.routers.customers import router as customers_router
+from app.routers.decision import router as decision_router
 from app.routers.demo import router as demo_router
 from app.routers.health import router as health_router
 from app.routers.license import router as license_router
@@ -70,6 +71,7 @@ app.include_router(tasks_router)
 app.include_router(rules_router)
 app.include_router(commerce_router)
 app.include_router(customers_router)
+app.include_router(decision_router)
 app.include_router(overview_router)
 app.include_router(security_router)
 app.include_router(backups_router)

@@ -1,136 +1,151 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { getOverview } from "../api/client";
-import { ActionList } from "../components/dashboard/ActionList";
-import { AlertList } from "../components/dashboard/AlertList";
-import { MetricCard } from "../components/dashboard/MetricCard";
-import { PlatformCard } from "../components/dashboard/PlatformCard";
+import { getCustomers, getDecisionCenter } from "../api/client";
+import { PageHeader } from "../components/common/PageHeader";
+import { SectionHeader } from "../components/common/SectionHeader";
 import { StatusBadge } from "../components/common/StatusBadge";
-import { alerts, metrics, nextActions, platformPerformance } from "../data/mockDashboard";
-import { formatCountry, formatSeverity, formatStatus } from "../i18n/formatters";
-import type { OverviewResponse } from "../types/api";
+import { getCurrentLanguage } from "../i18n";
+import type { CustomerInfo } from "../types/api";
 
+interface ActionCard {
+  task_id?: number;
+  rule_id?: string;
+  what: string;
+  why: string;
+  evidence: string;
+  action: string;
+  priority: string;
+  source?: string;
+  entity_id?: string;
+  drafts?: { email_en: string; email_zh: string; whatsapp: string };
+}
+
+interface DecisionData {
+  health_status: string;
+  today_brief: { new_leads: Record<string, number>; new_orders: number; revenue_today: number; high_priority_actions: number; anomalies: number; suggested: string[] };
+  priority_queue: ActionCard[];
+  opportunity_radar: Record<string, Record<string, number> | Array<Record<string, unknown>>>;
+  risk_watch: Array<{ kind: string; severity: string; detail: string; count: number }>;
+  action_cards: ActionCard[];
+}
+
+/** Boss Decision Center (Phase 6) — "what do I handle today", not just metrics. */
 export function Overview() {
-  const { i18n, t } = useTranslation();
-  const [overview, setOverview] = useState<OverviewResponse>();
+  const { t } = useTranslation();
+  const [customers, setCustomers] = useState<CustomerInfo[]>([]);
+  const [customerId, setCustomerId] = useState<string>(() => window.localStorage.getItem("gy_dashboard_customer") || "gyutron");
+  const [data, setData] = useState<DecisionData>();
+  const [message, setMessage] = useState<string>();
+
+  const customer = useMemo(() => customers.find((c) => c.customer_id === customerId), [customers, customerId]);
 
   useEffect(() => {
-    getOverview().then(setOverview).catch(() => undefined);
+    getCustomers().then((r) => setCustomers(r.customers)).catch((e: Error) => setMessage(e.message));
   }, []);
 
-  function formatAlertTitle(title: string) {
-    if (title === "24h no follow-up") {
-      return t("alerts.noFollowup24h");
-    }
-    if (title === "Inventory low") {
-      return t("alerts.inventoryLow");
-    }
-    return title;
-  }
+  useEffect(() => {
+    window.localStorage.setItem("gy_dashboard_customer", customerId);
+    getDecisionCenter(customerId, getCurrentLanguage())
+      .then((r) => setData(r as unknown as DecisionData))
+      .catch((e: Error) => setMessage(e.message));
+  }, [customerId]);
 
-  function formatAlertDescription(title: string, description: string) {
-    if (title === "24h no follow-up") {
-      return t("alerts.noFollowup24hDesc", { count: 6, country: formatCountry("Brazil", i18n.language) });
-    }
-    if (title === "Inventory low") {
-      return t("alerts.inventoryLowDesc", { product: t("products.industrialCameraSku") });
-    }
-    return description;
+  const tone = (s: string) => (s === "critical" || s === "high" ? "warning" : s === "healthy" ? "success" : "neutral");
+  const brief = data?.today_brief;
+  const leadsTotal = brief ? Object.values(brief.new_leads).reduce((a, b) => a + b, 0) : 0;
+
+  async function copyDraft(text: string) {
+    await navigator.clipboard.writeText(text);
+    setMessage(t("decision.draftCopied"));
   }
 
   return (
     <div className="page-stack">
-      <section className="metric-grid">
-        {metrics.map((metric) => (
-          <MetricCard key={metric.labelKey} metric={metric} />
-        ))}
-      </section>
-
-      <section className="grid two-columns">
-        <article className="panel agent-summary">
-          <div className="panel-heading">
-            <h2>{t("overview.latestOwnerReport")}</h2>
-            <span>{overview?.latest_report?.created_at ?? t("overview.generatedFromLocalFiles")}</span>
-          </div>
-          <p>
-            {overview?.latest_report
-              ? t("overview.latestReportReady", { title: t("reports.ownerDailyReport"), count: Number(overview.latest_report.summary?.files ?? 0) })
-              : t("overview.noScheduledReport")}
-          </p>
-        </article>
-        <article className="panel">
-          <div className="panel-heading">
-            <h2>{t("overview.automationStatus")}</h2>
-            <span>{overview?.active_automations.length ?? 0} {t("overview.rules")}</span>
-          </div>
-          <div className="list-stack">
-            {(overview?.active_automations ?? []).slice(0, 4).map((rule) => (
-              <article className="list-item" key={rule.id}>
-                <div>
-                  <strong>{rule.name === "Daily Owner Report" ? t("automations.dailyOwnerReport") : rule.name}</strong>
-                  <span>{rule.next_run_at ? `${t("overview.next")}: ${rule.next_run_at}` : formatStatus(rule.status, t)}</span>
-                </div>
-              </article>
+      <PageHeader
+        actions={
+          <select onChange={(e) => setCustomerId(e.target.value)} value={customerId}>
+            {customers.map((c) => (
+              <option key={c.customer_id} value={c.customer_id}>{c.display_name}</option>
             ))}
-            {!overview?.active_automations.length ? <ActionList actions={nextActions.slice(0, 2)} /> : null}
-          </div>
-        </article>
-      </section>
+          </select>
+        }
+        description={t("decision.description")}
+        eyebrow={customer?.brand_name || ""}
+        title={t("decision.title")}
+      />
+      {customer?.is_demo ? (
+        <div className="inline-info" style={{ borderColor: "#b3261e", color: "#b3261e", fontWeight: 700 }}>{t("dashboard2.demoBanner")}</div>
+      ) : null}
+      {message ? <div className="inline-info">{message}</div> : null}
 
-      <section className="grid two-columns">
-        <article className="panel">
-          <div className="panel-heading">
-            <h2>{t("overview.recentSyncStatus")}</h2>
-            <span>{t("overview.localConnectorJobs")}</span>
-          </div>
-          <div className="list-stack">
-            {(overview?.recent_sync_jobs ?? []).map((job) => (
-              <article className="list-item" key={job.id}>
-                <div>
-                  <strong>{formatStatus(job.status, t)}</strong>
-                  <span>
-                    {t("dataSources.recordsFound", { count: job.records_found })} / {t("dataSources.recordsImported", { count: job.records_imported })}
-                  </span>
-                </div>
-              </article>
-            ))}
-            {!overview?.recent_sync_jobs.length ? <p className="muted">{t("overview.noConnectorJobs")}</p> : null}
-          </div>
-        </article>
-        <article className="panel">
-          <div className="panel-heading">
-            <h2>{t("overview.openAlerts")}</h2>
-            <span>{overview?.open_alerts.length ?? alerts.length} {t("overview.active")}</span>
-          </div>
-          {overview?.open_alerts.length ? (
-            <div className="list-stack">
-              {overview.open_alerts.map((alert) => (
-                <article className="list-item" key={alert.id}>
-                  <div>
-                    <strong>{formatAlertTitle(alert.title)}</strong>
-                    <span>{formatAlertDescription(alert.title, alert.description)}</span>
-                  </div>
-                  <StatusBadge label={formatSeverity(alert.severity, t)} tone={alert.severity === "high" ? "risk" : "warning"} />
-                </article>
-              ))}
-            </div>
-          ) : (
-            <AlertList alerts={alerts.slice(0, 2)} />
-          )}
-        </article>
+      <section className="source-grid">
+        <article className="panel"><span className="muted">{t("decision.health")}</span>
+          <div><StatusBadge label={data?.health_status ?? "-"} tone={tone(data?.health_status ?? "")} /></div></article>
+        <article className="panel"><span className="muted">{t("decision.newLeadsToday")}</span><div style={{ fontSize: 28, fontWeight: 700 }}>{leadsTotal}</div></article>
+        <article className="panel"><span className="muted">{t("decision.ordersToday")}</span><div style={{ fontSize: 28, fontWeight: 700 }}>{brief?.new_orders ?? 0}</div>
+          <span className="muted">{t("dashboard2.revenue")}: {brief?.revenue_today ?? 0}</span></article>
+        <article className="panel"><span className="muted">{t("decision.highPriority")}</span><div style={{ fontSize: 28, fontWeight: 700 }}>{brief?.high_priority_actions ?? 0}</div></article>
+        <article className="panel"><span className="muted">{t("decision.anomalies")}</span><div style={{ fontSize: 28, fontWeight: 700 }}>{brief?.anomalies ?? 0}</div></article>
       </section>
 
       <section className="panel">
-        <div className="panel-heading">
-          <h2>{t("dashboard.platformPerformance")}</h2>
-          <span>{t("dashboard.mockedUntilConnected")}</span>
-        </div>
-        <div className="platform-strip">
-          {platformPerformance.map((platform) => (
-            <PlatformCard key={platform.platform} platform={platform} />
-          ))}
-        </div>
+        <SectionHeader title={t("decision.actionCards")} description={t("decision.actionCardsDescription")} />
+        {data?.action_cards.length ? (
+          <div className="list-stack">
+            {data.action_cards.map((card) => (
+              <article className="record-card" key={`${card.rule_id}-${card.entity_id}`} style={{ alignItems: "flex-start", flexDirection: "column", gap: 6 }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <StatusBadge label={card.priority} tone={tone(card.priority)} />
+                  <strong>{card.what}</strong>
+                  <span className="muted">{card.entity_id} · {card.source}</span>
+                </div>
+                <div className="muted">{t("decision.why")}: {card.why}</div>
+                <div className="muted">{t("decision.evidence")}: {card.evidence}</div>
+                <div><strong>{t("decision.action")}:</strong> {card.action}</div>
+                {card.drafts ? (
+                  <div className="table-actions">
+                    <button className="table-action" onClick={() => void copyDraft(card.drafts!.email_en)} type="button">{t("decision.copyEmailEn")}</button>
+                    <button className="table-action" onClick={() => void copyDraft(card.drafts!.email_zh)} type="button">{t("decision.copyEmailZh")}</button>
+                    <button className="table-action" onClick={() => void copyDraft(card.drafts!.whatsapp)} type="button">{t("decision.whatsapp")}</button>
+                  </div>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">{t("decision.noActions")}</p>
+        )}
+      </section>
+
+      <section className="grid two-columns">
+        <article className="panel">
+          <SectionHeader title={t("decision.opportunityRadar")} />
+          {data ? (
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {Object.entries(data.opportunity_radar).map(([k, v]) => (
+                <li key={k}>
+                  <strong>{k}</strong>: {Array.isArray(v) ? `${v.length}` : Object.entries(v).map(([a, b]) => `${a}×${b}`).join(", ") || "-"}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </article>
+        <article className="panel">
+          <SectionHeader title={t("decision.riskWatch")} />
+          {data?.risk_watch.length ? (
+            <div className="list-stack">
+              {data.risk_watch.map((r, i) => (
+                <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <StatusBadge label={r.severity} tone={tone(r.severity)} />
+                  <span>{r.detail}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">{t("decision.noRisks")}</p>
+          )}
+        </article>
       </section>
     </div>
   );

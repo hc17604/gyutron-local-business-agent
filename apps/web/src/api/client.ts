@@ -197,6 +197,12 @@ export function getReports(customerId?: string): Promise<{ reports: LocalReport[
   return request<{ reports: LocalReport[] }>(`/reports${qs}`);
 }
 
+export function getDecisionCenter(customerId: string, language?: string): Promise<Record<string, unknown>> {
+  const qs = new URLSearchParams({ customer_id: customerId });
+  if (language) qs.set("language", language);
+  return request<Record<string, unknown>>(`/decision-center?${qs.toString()}`);
+}
+
 export function getCustomers(): Promise<{ customers: CustomerInfo[] }> {
   return request<{ customers: CustomerInfo[] }>("/customers");
 }

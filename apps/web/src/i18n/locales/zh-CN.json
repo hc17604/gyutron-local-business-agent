@@ -682,5 +682,30 @@
     "latestReport": "最新报告",
     "noReport": "暂无报告——请到报告页生成。",
     "noData": "该范围内暂无数据。"
+  },
+  "app": {
+    "apiOffline": "后端 API 无法连接。请先启动本地后端（apps/api）后重试。"
+  },
+  "decision": {
+    "title": "决策中心",
+    "description": "今天需要你处理什么——跨源的行动、机会与风险。",
+    "health": "系统健康",
+    "newLeadsToday": "今日新增线索",
+    "ordersToday": "今日订单",
+    "highPriority": "高优行动",
+    "anomalies": "异常",
+    "actionCards": "行动卡片",
+    "actionCardsDescription": "每张卡片：发生了什么、为什么重要、证据、建议动作。",
+    "why": "为什么重要",
+    "evidence": "证据",
+    "action": "建议动作",
+    "copyEmailEn": "复制英文邮件",
+    "copyEmailZh": "复制中文邮件",
+    "draftCopied": "草稿已复制到剪贴板。",
+    "opportunityRadar": "机会雷达",
+    "riskWatch": "风险监视",
+    "noActions": "当前没有需要你处理的事项。",
+    "noRisks": "暂无风险预警。",
+    "whatsapp": "WhatsApp"
   }
 }

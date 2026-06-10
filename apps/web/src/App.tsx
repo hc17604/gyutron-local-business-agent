@@ -50,7 +50,7 @@ const pageMap: Record<PageKey, { titleKey: string; component: ReactElement }> = 
 export function App() {
   const { t } = useTranslation();
   const [activePage, setActivePage] = useState<PageKey>("overview");
-  const [setupState, setSetupState] = useState<"loading" | "needs_setup" | "ready">("loading");
+  const [setupState, setSetupState] = useState<"loading" | "needs_setup" | "ready" | "offline">("loading");
   const [user, setUser] = useState<AuthUser>();
   const page = pageMap[activePage];
 
@@ -72,11 +72,22 @@ export function App() {
           }
         }
       })
-      .catch(() => setSetupState("needs_setup"));
+      // An unreachable API is NOT "needs setup" — showing the wizard against an
+      // already-initialized backend dead-ends with "System is already initialized".
+      .catch(() => setSetupState("offline"));
   }, []);
 
   if (setupState === "loading") {
     return <div className="loading-state">{t("common.loading")} GyuTron Local Agent...</div>;
+  }
+
+  if (setupState === "offline") {
+    return (
+      <div className="loading-state">
+        <p>{t("app.apiOffline")}</p>
+        <button className="button primary" onClick={() => window.location.reload()} type="button">{t("common.refresh")}</button>
+      </div>
+    );
   }
 
   if (setupState === "needs_setup") {

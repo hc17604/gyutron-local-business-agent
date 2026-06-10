@@ -682,5 +682,30 @@
     "latestReport": "Latest report",
     "noReport": "No report yet — generate one on the Reports page.",
     "noData": "No data in this range."
+  },
+  "app": {
+    "apiOffline": "Backend API is not reachable. Start the local backend (apps/api) and retry."
+  },
+  "decision": {
+    "title": "Decision Center",
+    "description": "What needs your attention today — actions, opportunities, and risks across all sources.",
+    "health": "System health",
+    "newLeadsToday": "New leads today",
+    "ordersToday": "Orders today",
+    "highPriority": "High-priority actions",
+    "anomalies": "Anomalies",
+    "actionCards": "Action cards",
+    "actionCardsDescription": "Each card: what happened, why it matters, evidence, and the suggested move.",
+    "why": "Why",
+    "evidence": "Evidence",
+    "action": "Suggested action",
+    "copyEmailEn": "Copy EN email",
+    "copyEmailZh": "Copy ZH email",
+    "draftCopied": "Draft copied to clipboard.",
+    "opportunityRadar": "Opportunity radar",
+    "riskWatch": "Risk watch",
+    "noActions": "Nothing needs you right now.",
+    "noRisks": "No risks flagged.",
+    "whatsapp": "WhatsApp"
   }
 }

@@ -152,9 +152,19 @@ def generate_daily_owner_report(language: str | None = "en", connector_id: int |
     risks = flag_lines()
     risk_block = "\n".join(f"- {r}" for r in risks) if risks else ("- 无" if zh else "- None")
 
+    from app.services.analyst import executive_summary
+
+    exec_sum = executive_summary(
+        {"yesterday": y_tot, "overdue": len(overdue), "open_tasks": len(tasks), "flags": flags}, language
+    )
+
     if zh:
         title = "老板日报"
         content = f"""# 老板日报
+
+## 执行摘要
+
+{exec_sum}
 
 ## 昨日新增（对比前一日）
 
@@ -196,6 +206,10 @@ def generate_daily_owner_report(language: str | None = "en", connector_id: int |
     else:
         title = "Daily Owner Report"
         content = f"""# Daily Owner Report
+
+## Executive Summary
+
+{exec_sum}
 
 ## Yesterday (vs the day before)
 

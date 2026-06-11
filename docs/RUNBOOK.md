@@ -15,6 +15,7 @@
 
 **③ 日报没出 / 数据没同步**
 第一步：打开工作台 Overview（决策中心）看系统健康；Data Sources 页看最近同步。
+**已配置开机自启**（用户启动文件夹 GyuTron Workspace.vbs → scripts/start-workspace-silent.ps1，登录后静默拉起 8000+5173，日志在 data/logs/）。手动方式：双击仓库根 start-workspace.bat。
 工程师：后端没跑？`apps\api> ..\..\.venv\Scripts\python.exe -m uvicorn app.main:app --port 8000`。
 前端显示"后端 API 无法连接" = 先启动后端（不要进设置向导）。
 同步红色 = 看 `GET /health-check?customer_id=gyutron` 的 critical 项（通常是 key 环境变量缺失——key 在 agent 仓库 `.env`）。
